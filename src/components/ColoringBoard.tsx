@@ -33,6 +33,44 @@ export default function ColoringBoard({ animal, onSave, onBack }: ColoringBoardP
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successTitle, setSuccessTitle] = useState(animal.name);
 
+  // Confetti particles state
+  const [particles, setParticles] = useState<{
+    id: number;
+    x: number;
+    y: number;
+    color: string;
+    size: number;
+    type: 'circle' | 'square' | 'star' | 'heart';
+    delay: number;
+    rotate: number;
+  }[]>([]);
+
+  // Regenerate particles when the success modal is shown
+  useEffect(() => {
+    if (showSuccessModal) {
+      const colors = ['#ffd700', '#ff4757', '#2ed573', '#1e90ff', '#ffa502', '#ff6b81', '#70a1ff', '#eccc68'];
+      const types: ('circle' | 'square' | 'star' | 'heart')[] = ['circle', 'square', 'star', 'heart'];
+      const newParticles = Array.from({ length: 70 }).map((_, i) => {
+        const angle = Math.random() * Math.PI * 2;
+        // Explode outward from center with some randomness
+        const distance = 80 + Math.random() * 320;
+        return {
+          id: i,
+          x: Math.cos(angle) * distance,
+          y: Math.sin(angle) * distance - (40 + Math.random() * 120), // slight upward bias for gravity effect
+          color: colors[Math.floor(Math.random() * colors.length)],
+          size: 12 + Math.random() * 22,
+          type: types[Math.floor(Math.random() * types.length)],
+          delay: Math.random() * 0.25,
+          rotate: Math.random() * 720 - 360, // spins
+        };
+      });
+      setParticles(newParticles);
+    } else {
+      setParticles([]);
+    }
+  }, [showSuccessModal]);
+
   // Undo/Redo Stacks
   const [undoStack, setUndoStack] = useState<string[]>([]);
   const [redoStack, setRedoStack] = useState<string[]>([]);
@@ -632,7 +670,44 @@ export default function ColoringBoard({ animal, onSave, onBack }: ColoringBoardP
         </div>
 
         {/* Bottom Swatch Selector */}
-        <div className="mt-6 bg-[#e1f0ff] border-ink rounded-2xl p-4 shadow-[4px_4px_0px_0px_#000000] flex flex-col gap-3 select-none">
+        <div className="mt-6 bg-[#e1f0ff] border-ink rounded-2xl p-4 shadow-[4px_4px_0px_0px_#000000] flex flex-col gap-4 select-none">
+          {/* Brush/Eraser Thickness & Info Row */}
+          {activeTool !== 'bucket' && (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b-2 border-black/10">
+              <div className="flex items-center gap-3">
+                <span className="font-display font-black text-sm tracking-wide text-black flex items-center gap-1">
+                  {activeTool === 'eraser' ? '🧽 SİLGİ KALINLIĞI:' : '🖌️ FIRÇA KALINLIĞI:'}
+                </span>
+                <span className="font-mono text-xs font-bold bg-white px-2 py-0.5 rounded border border-black/20">
+                  {brushSize}px
+                </span>
+              </div>
+              
+              <div className="flex items-center gap-4 w-full sm:w-auto">
+                <input 
+                  type="range" 
+                  min="4" 
+                  max="48" 
+                  value={brushSize}
+                  onChange={(e) => setBrushSize(parseInt(e.target.value))}
+                  className="flex-1 sm:w-48 accent-[#ffd700] cursor-pointer h-2 bg-white rounded-lg border-2 border-black appearance-none"
+                  id="brush-thickness-slider"
+                />
+                
+                {/* Real-time brush size indicator dot */}
+                <div className="w-12 h-12 rounded-xl bg-white border-2 border-black flex items-center justify-center shrink-0">
+                  <div 
+                    className="rounded-full bg-black transition-all" 
+                    style={{ 
+                      width: `${Math.min(36, Math.max(4, brushSize))}px`, 
+                      height: `${Math.min(36, Math.max(4, brushSize))}px` 
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="flex justify-between items-center px-1">
             <span className="font-display font-black text-sm tracking-wide text-black flex items-center gap-1.5">
               🌈 BİR RENK SEÇ:
@@ -675,7 +750,56 @@ export default function ColoringBoard({ animal, onSave, onBack }: ColoringBoardP
       {/* Success Completion Modal Backdrop */}
       <AnimatePresence>
         {showSuccessModal && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 overflow-y-auto overflow-hidden">
+            {/* Confetti / Star Particles Burst */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-10">
+              {particles.map((p) => {
+                const isStar = p.type === 'star';
+                const isHeart = p.type === 'heart';
+                const isCircle = p.type === 'circle';
+                return (
+                  <motion.div
+                    key={p.id}
+                    initial={{ x: 0, y: 0, scale: 0, opacity: 1, rotate: 0 }}
+                    animate={{ 
+                      x: p.x, 
+                      y: p.y, 
+                      scale: [0, 1.2, 0.8, 1, 0.5, 0],
+                      opacity: [1, 1, 1, 0.8, 0.5, 0],
+                      rotate: p.rotate 
+                    }}
+                    transition={{ 
+                      duration: 1.8 + Math.random() * 1.2, 
+                      delay: p.delay,
+                      ease: [0.1, 0.8, 0.3, 1]
+                    }}
+                    style={{
+                      position: 'absolute',
+                      width: p.size,
+                      height: p.size,
+                      backgroundColor: (isStar || isHeart) ? undefined : p.color,
+                      borderRadius: isCircle ? '50%' : p.type === 'square' ? '4px' : undefined,
+                    }}
+                  >
+                    {isStar && (
+                      <Star 
+                        size={p.size} 
+                        fill={p.color} 
+                        className="text-black stroke-[1.5px]" 
+                      />
+                    )}
+                    {isHeart && (
+                      <Heart 
+                        size={p.size} 
+                        fill={p.color} 
+                        className="text-black stroke-[1.5px]" 
+                      />
+                    )}
+                  </motion.div>
+                );
+              })}
+            </div>
+
             <motion.div 
               initial={{ scale: 0.85, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
