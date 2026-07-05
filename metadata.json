@@ -1,0 +1,6 @@
+{
+  "name": "Coloring Fun",
+  "description": "An interactive, child-friendly coloring book application with multiple animals, a dynamic coloring canvas with various tools, and an art gallery to save completed masterpieces.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
