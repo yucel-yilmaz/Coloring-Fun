@@ -1,10 +1,20 @@
 import { Animal, GalleryItem } from './types';
+import { LOCAL_COLORING_PAGES } from './data/localColoringPages';
+
+const LOCAL_CARD_COLORS = [
+  'bg-[#fff2b2]',
+  'bg-[#dff3e4]',
+  'bg-[#e6e0ff]',
+  'bg-[#ffe1dc]',
+] as const;
 
 export const ANIMALS: Animal[] = [
   {
     id: 'lion',
     name: 'Lion',
     nameTr: 'Aslan',
+    title: 'Aslan',
+    source: 'curated',
     lineArtUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDqqo23cwNUGSLXp-9QxP8IVn3rumx7HQxfyqyzE1Bd1oz-4dGFW9aqzMMYFQaw0ruhFnhdWrd3FregKu0ABUSlAYoaP6cfutCQZ53TmL1-UBbYkY2u2BNnGIVxzZqovNDRsDtSHi0jtRCBaFeUfYeohwC1MilnCcjFWfcjcxPyHtufNZnVdkXiVxty7n3FmDka2tAJ7VvBiXOM7QvVOsCG38t4v8npP7ctUuE7lI59MibqjuUcVzPtWw2Kf4pTp66-i_-BGvezmbbl',
     cardBgColor: 'bg-[#ffd700]',
     category: 'animals',
@@ -14,6 +24,8 @@ export const ANIMALS: Animal[] = [
     id: 'elephant',
     name: 'Elephant',
     nameTr: 'Fil',
+    title: 'Fil',
+    source: 'curated',
     lineArtUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCN9ED13VWMhEyb5wZFPlz0ZPhcBKnYa6hehbaZvybyh6iUhsUDRDzfZ-KcxDUpbBZ7-UQBYgiDjZRsfExaeh_1jNzntouTm4Tl12AuuncGK8xbqAgDBtv6VGd9QCXnw1WGgqwAH7ib-FJHCrdIl2ZwMxoih9tGGQQ7KB9Vua6XX4V0fwB6Z-IXeP7eTDf7QoPkQThOvAhnsTiiqOTa7j4qH_pPqPCWXKs8hzyP_N4rRaum3YS9lIx9HjOObk0B7CuZh93ecVOzJpMm',
     cardBgColor: 'bg-[#cbe6ff]',
     category: 'animals',
@@ -23,6 +35,8 @@ export const ANIMALS: Animal[] = [
     id: 'cat',
     name: 'Cat',
     nameTr: 'Kedi',
+    title: 'Kedi',
+    source: 'curated',
     lineArtUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAupw7Dy1W2eYGRLzvs45UD5JLFyS-G-7HSF-dt8Y2A875aDJGFTSSxyYe9m5yZohY8gZm4vngNQHHQjCNxsUHsusEY8Dl7muU6tERr8YPtFfNRtI_b2sP4U-bwLOJ0QkwM5PZuqluWpQ2p9fD14K5lWloJKE9P_wCBR37PhmgK_IX0OpWhCfKxl3djM0yICMVAgHJByxmypln1GN8V2oPX4Rttl0EvY1260__Y_ep4p5DPVh9cwXo1E-dx3Mz90S7dKv42JntaHx_G',
     cardBgColor: 'bg-[#ffceca]',
     category: 'animals',
@@ -32,6 +46,8 @@ export const ANIMALS: Animal[] = [
     id: 'dog',
     name: 'Dog',
     nameTr: 'Köpek',
+    title: 'Köpek',
+    source: 'curated',
     lineArtUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBLtdDK9NDIrlnOr1dtJIaIbNVkKQlw6b3M1QT3CFjOqVh9qQLb9L09-tZRqErL5yo7DqB7i-cNqGvU-_UI2v5KxcJJHAMx7lZyUrleYeN5Enu87NRvD0bVxmju4mA1q_jxtieLmmsZpC5FA2sbT6wvn4IW3tMsRx0FpmyI8C1WDSx-UQhWDwjwR_5K-YoCUsIHgQMG_wdUff8Zmxm_UB_Gk_yOF0KB7uf4065Rdn6jvt0UaXF7Ly9zOcOQDTLLl3FyYLArlxBEYaHm',
     cardBgColor: 'bg-[#e6f2ff]',
     category: 'animals',
@@ -41,11 +57,24 @@ export const ANIMALS: Animal[] = [
     id: 'dino',
     name: 'Dino',
     nameTr: 'Dinozor',
+    title: 'Dinozor',
+    source: 'curated',
     lineArtUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCzEH06AlFta2GYWMoGCun9BK88u6bXYdm1Y8Qn3BG3VP9GXadGqx5Hyy3sQDZw8NjX5Wwwenpp_q3DqLzFqWHBqPiOovt3Clf1jOVjv_qOuKOezgSAFFuW_QIs51DeobWSud57EpaC0cL5STbc2h9l2YoGC8uo8RhpEx9cC3K7S_f9ccVLCk0QTOdiEqc_zNRaQq_59JzBN-0HYf5J4vc7lU9QephV4Wbj2yIN1SyMh2YVd8g2dJ-7UqJ5UtTmc0JlSXQO2kkJNLSn',
     cardBgColor: 'bg-[#ecf4ff]',
     category: 'dinos',
     hoverBorderColor: 'group-hover:bg-[#705d00]'
-  }
+  },
+  ...LOCAL_COLORING_PAGES.map((page, index) => ({
+    id: page.id,
+    name: page.name,
+    nameTr: page.nameTr,
+    title: page.nameTr,
+    source: 'curated' as const,
+    lineArtUrl: `/animals/${page.file}`,
+    cardBgColor: LOCAL_CARD_COLORS[index % LOCAL_CARD_COLORS.length],
+    category: page.category,
+    hoverBorderColor: 'group-hover:bg-[#001e30]'
+  }))
 ];
 
 export const DEFAULT_GALLERY: GalleryItem[] = [
@@ -96,6 +125,16 @@ export const COLORS = [
   { hex: '#f97316', name: 'Turuncu', nameEn: 'Orange' },
   { hex: '#ec4899', name: 'Pembe', nameEn: 'Pink' },
   { hex: '#14b8a6', name: 'Turkuaz', nameEn: 'Teal' },
+  { hex: '#38bdf8', name: 'Açık Mavi', nameEn: 'Sky Blue' },
+  { hex: '#1e3a8a', name: 'Lacivert', nameEn: 'Navy' },
+  { hex: '#84cc16', name: 'Lime', nameEn: 'Lime' },
+  { hex: '#86efac', name: 'Nane Yeşili', nameEn: 'Mint' },
+  { hex: '#fb7185', name: 'Mercan', nameEn: 'Coral' },
+  { hex: '#881337', name: 'Bordo', nameEn: 'Burgundy' },
+  { hex: '#f2c6a0', name: 'Ten Rengi', nameEn: 'Skin Tone' },
+  { hex: '#f5deb3', name: 'Bej', nameEn: 'Beige' },
+  { hex: '#64748b', name: 'Gri', nameEn: 'Gray' },
+  { hex: '#ca8a04', name: 'Altın', nameEn: 'Gold' },
   { hex: '#8b4513', name: 'Kahverengi', nameEn: 'Brown' },
   { hex: '#000000', name: 'Siyah', nameEn: 'Black' },
   { hex: '#ffffff', name: 'Beyaz', nameEn: 'White' }

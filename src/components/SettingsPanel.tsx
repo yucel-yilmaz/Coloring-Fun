@@ -13,7 +13,7 @@ import {
 import { playBubblePop, playToolSelect } from '../utils/audio';
 
 interface SettingsPanelProps {
-  onResetGallery: () => void;
+  onResetGallery?: () => void;
   soundEnabled: boolean;
   onToggleSound: (enabled: boolean) => void;
 }
@@ -22,6 +22,7 @@ export default function SettingsPanel({ onResetGallery, soundEnabled, onToggleSo
   const [resetSuccess, setResetSuccess] = useState(false);
 
   const handleReset = () => {
+    if (!onResetGallery) return;
     playToolSelect();
     onResetGallery();
     setResetSuccess(true);
@@ -79,9 +80,7 @@ export default function SettingsPanel({ onResetGallery, soundEnabled, onToggleSo
               </button>
             </div>
 
-            <hr className="border-black/10" />
-
-            {/* Reset Gallery */}
+            {onResetGallery && <><hr className="border-black/10" />
             <div className="flex justify-between items-center py-2">
               <div>
                 <span className="font-display font-black text-base text-black block">
@@ -106,7 +105,7 @@ export default function SettingsPanel({ onResetGallery, soundEnabled, onToggleSo
                   </>
                 )}
               </button>
-            </div>
+            </div></>}
           </div>
         </div>
 

@@ -1,0 +1,28 @@
+import { config as loadEnv } from 'dotenv';
+
+loadEnv({ path: '.env.local' });
+loadEnv();
+
+export const config = {
+  port: Number(process.env.PORT) || 3000,
+  supabaseUrl: process.env.SUPABASE_URL || '',
+  supabasePublicUrl: process.env.SUPABASE_PUBLIC_URL || process.env.SUPABASE_URL || '',
+  supabaseSecretKey: process.env.SUPABASE_SECRET_KEY || '',
+  encryptionKey: process.env.AI_KEYS_MASTER_KEY || '',
+  moderationKey: process.env.OPENAI_MODERATION_API_KEY || '',
+  allowDegradedModeration:
+    process.env.NODE_ENV !== 'production'
+    && process.env.ALLOW_DEGRADED_MODERATION === 'true',
+  localImageApiUrl: process.env.LOCAL_IMAGE_API_URL || 'http://127.0.0.1:7861',
+  adminEmails: new Set(
+    (process.env.ADMIN_EMAILS || '')
+      .split(',')
+      .map((email) => email.trim().toLowerCase())
+      .filter(Boolean),
+  ),
+  workerPollMs: Number(process.env.WORKER_POLL_MS) || 2000,
+};
+
+export function isCloudConfigured() {
+  return Boolean(config.supabaseUrl && config.supabaseSecretKey);
+}
