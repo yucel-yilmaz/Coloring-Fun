@@ -1,7 +1,19 @@
 {
-  "name": "react-example",
+  "name": "coloring-fun",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "Ebeveyn kontrollü, yapay zeka destekli boyama uygulamasi",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yucel-yilmaz/Coloring-Fun.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yucel-yilmaz/Coloring-Fun/issues"
+  },
+  "homepage": "https://github.com/yucel-yilmaz/Coloring-Fun#readme",
+  "engines": {
+    "node": ">=22"
+  },
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",

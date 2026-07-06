@@ -1,0 +1,38 @@
+name: Hata bildirimi
+description: Tekrarlanabilir bir sorunu bildirin.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Güvenlik açıklarını burada paylaşmayın; SECURITY.md dosyasını izleyin.
+  - type: textarea
+    id: description
+    attributes:
+      label: Sorun
+      description: Ne oldu ve ne olmasını bekliyordunuz?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Tekrarlama adımları
+      placeholder: |
+        1. ... sayfasına git
+        2. ... düğmesine bas
+        3. Hatayı gözlemle
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Ortam
+      description: İşletim sistemi, tarayıcı ve Node.js sürümü
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Loglar veya ekran görüntüleri
+      description: Gizli anahtarları ve kişisel verileri kaldırın.
+      render: shell

@@ -1,109 +1,185 @@
 # Coloring Fun
 
-Ebeveyn kontrollü boyama uygulaması. Hazır çizimler üyelik olmadan boyanabilir; üyeler Gemini, OpenAI veya yerel SDXL ile yaşa uygun boyama sayfaları üretebilir, özel galeride saklayabilir ve admin onayıyla topluluğa paylaşabilir.
+Ebeveyn kontrollü, yapay zekâ destekli bir boyama uygulaması. Ziyaretçiler hazır
+çizimleri hesap açmadan boyayabilir; üyeler Gemini, OpenAI veya Apple Silicon
+üzerinde çalışan yerel SDXL ile yaşa uygun boyama sayfaları üretebilir.
 
-## Yerel kurulum
+## Özellikler
+
+- Fırça, boya kovası, silgi, geri alma ve galeri desteği olan dokunmatik boyama alanı
+- Üyeliksiz kullanılabilen yerel çizim kataloğu
+- Ebeveyne bağlı çocuk profilleri ve yaş grupları
+- Gemini, OpenAI ve yerel SDXL sağlayıcıları
+- Kullanıcıya özel galeri ve moderasyonlu topluluk paylaşımı
+- Şifrelenmiş kullanıcı API anahtarları, içerik moderasyonu ve Supabase RLS
+- Skill sürümleme, yayınlama ve geri alma araçları içeren yönetim alanı
+
+## Teknolojiler
+
+React 19, TypeScript, Vite, Express, Supabase, Vitest, Sharp ve isteğe bağlı
+Python/SDXL kullanılır. Web/API süreci ile AI worker ayrı çalışabilir.
+
+## Gereksinimler
+
+- Node.js 22 veya üzeri
+- npm 10 veya üzeri
+- Bulut özellikleri için bir Supabase projesi
+- Yerel Supabase için Docker
+- Yerel SDXL için Apple Silicon, `uv` ve yeterli disk alanı
+
+## Hızlı başlangıç
 
 ```bash
-npm install
+git clone https://github.com/yucel-yilmaz/Coloring-Fun.git
+cd Coloring-Fun
+npm ci
 cp .env.example .env.local
 npm run dev
 ```
 
-Uygulama `http://localhost:3000` adresinde açılır. Supabase ayarları olmadan hazır katalog ve boyama ekranı çalışır; üyelik ve AI özellikleri yapılandırma uyarısı gösterir.
+Uygulama varsayılan olarak <http://localhost:3000> adresinde açılır. Supabase
+ayarları olmadan hazır katalog ve boyama ekranı çalışır; üyelik ve AI özellikleri
+yapılandırma uyarısı gösterir.
+
+## Yapılandırma
+
+`.env.example` dosyasını `.env.local` olarak kopyalayın. `VITE_` önekli değerler
+tarayıcı paketine dahil edilir; gizli değerlerde bu öneki kesinlikle kullanmayın.
+
+| Değişken | Kullanım |
+| --- | --- |
+| `VITE_SUPABASE_URL` | Tarayıcının bağlanacağı Supabase URL'si |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Tarayıcıda kullanılabilen publishable/anon anahtar |
+| `VITE_GOOGLE_AUTH_ENABLED` | Google giriş düğmesini etkinleştirir |
+| `SUPABASE_URL` | API ve worker için Supabase URL'si |
+| `SUPABASE_PUBLIC_URL` | İstemciye dönen Storage URL'lerinin dış adresi |
+| `SUPABASE_SECRET_KEY` | Yalnızca sunucuda kullanılan secret/service-role anahtarı |
+| `AI_KEYS_MASTER_KEY` | Kullanıcı AI anahtarlarını şifreleyen 32 baytlık hex anahtar |
+| `OPENAI_MODERATION_API_KEY` | Platform moderasyonu için ayrı OpenAI anahtarı |
+| `ADMIN_EMAILS` | İlk doğrulanmış istekte admin yapılacak e-posta listesi |
+| `LOCAL_IMAGE_API_URL` | Yerel görsel servisinin adresi |
+
+Şifreleme anahtarını şu komutla üretebilirsiniz:
+
+```bash
+openssl rand -hex 32
+```
+
+Gerçek gizli değerleri commit etmeyin. Üretimde GitHub Actions secrets veya bulut
+sağlayıcınızın Secret Manager hizmetini kullanın.
 
 ## Supabase kurulumu
 
-1. Yeni bir Supabase projesi oluşturun.
-2. `supabase/migrations/202607060001_membership_ai_community.sql` migration dosyasını çalıştırın.
-3. Supabase Auth içinde e-posta/şifreyi ve Google provider'ını etkinleştirin.
-4. Site URL ve OAuth callback URL değerlerini uygulama alan adınıza ayarlayın.
-5. `.env.local` dosyasına `.env.example` içindeki public ve backend değerlerini girin.
-6. `AI_KEYS_MASTER_KEY` üretmek için `openssl rand -hex 32` kullanın ve değeri prodüksiyonda Secret Manager'a koyun.
-7. `OPENAI_MODERATION_API_KEY` için platforma ait, kullanıcı üretim anahtarlarından ayrı bir OpenAI anahtarı kullanın.
+1. Bir Supabase projesi oluşturun.
+2. `supabase/migrations/` altındaki migration dosyalarını sırasıyla uygulayın.
+3. Supabase Auth içinde e-posta/şifreyi ve gerekiyorsa Google provider'ını açın.
+4. Site URL ve OAuth callback URL değerlerini uygulamanızın adresine ayarlayın.
+5. Public ve backend değerlerini `.env.local` dosyasına ekleyin.
 
-`SUPABASE_SECRET_KEY`, `AI_KEYS_MASTER_KEY` ve moderasyon anahtarı hiçbir zaman `VITE_` önekiyle tanımlanmamalıdır.
-
-### Yerel Supabase
-
-Docker açıkken:
+Yerel Supabase için Docker çalışırken:
 
 ```bash
 npm run supabase:start
 npm run dev
 ```
 
-Yerel API `http://127.0.0.1:54321`, PostgreSQL ise `127.0.0.1:54322` üzerinde çalışır. `.env.local` bu proje için yerel anahtarlarla hazırlanmıştır.
-
-Yerel admin hesabı yalnızca geliştirme içindir:
-
-```text
-E-posta: admin@coloring.fun
-Şifre: LocalAdmin123!
-```
-
-Auth, admin bootstrap, API/RLS, private Storage ve skill seed doğrulaması:
+Auth, API/RLS, private Storage, admin bootstrap ve skill seed akışını doğrulamak
+için `.env.local` içindeki `ADMIN_EMAILS` ile aynı test hesabını kullanın:
 
 ```bash
-npm run dev
-# Başka bir terminalde:
+export TEST_ADMIN_EMAIL="admin@example.test"
+export TEST_ADMIN_PASSWORD="yalnizca-yerel-guclu-bir-sifre"
 npm run verify:supabase
 ```
 
-Servisleri görmek veya durdurmak için `npm run supabase:status` ve `npm run supabase:stop` kullanılabilir. Google OAuth varsayılan olarak kapalıdır; Google Cloud istemci bilgileri Supabase Auth'a eklendikten sonra `VITE_GOOGLE_AUTH_ENABLED=true` yapılmalıdır.
+Yerel servisleri `npm run supabase:status` ile görebilir,
+`npm run supabase:stop` ile durdurabilirsiniz.
 
-## Çalıştırma
+## Komutlar
+
+| Komut | Açıklama |
+| --- | --- |
+| `npm run dev` | Web uygulaması ve API'yi geliştirme modunda başlatır |
+| `npm run worker` | AI üretim kuyruğu işçisini başlatır |
+| `npm run cleanup` | Saklama süreleri dolan verileri temizler |
+| `npm run lint` | TypeScript tip kontrolünü çalıştırır |
+| `npm test` | Birim ve API testlerini çalıştırır |
+| `npm run build` | Web, API, worker ve cleanup çıktılarını üretir |
+| `npm run svg:evaluate -- <dizin>` | SVG motoru değerlendirme raporu üretir |
+
+## Yerel SDXL
+
+Yerel görsel üretimi Apple Silicon üzerinde SDXL Base, SDXL-Lightning,
+ColoringBookRedmond ve FP16 uyumlu SDXL VAE kullanır. Model ve Python ortamı
+varsayılan olarak `~/.cache/coloring-fun-ai` altında saklanır; farklı bir disk
+için `LOCAL_AI_HOME` ayarlanabilir.
 
 ```bash
-npm run dev          # Web + API
-npm run worker       # AI üretim işçisi
-npm run cleanup      # 7/90/365 günlük saklama kurallarını uygula
-npm run svg:evaluate -- samples/svg-evaluation # SVG motorlarını ölç
-npm run lint         # TypeScript
-npm test             # Birim ve API testleri
-npm run build        # Web, API ve worker production build
+export LOCAL_AI_HOME="/path/to/coloring-fun-ai"
+npm run local-ai:setup
+npm run local-ai:start
 ```
 
-### Apple Silicon yerel görsel üretimi
-
-M4/16 GB kurulumu SDXL Base, SDXL-Lightning 4-step, ColoringBookRedmond ve
-FP16-safe SDXL VAE kullanır. Büyük model dosyaları varsayılan olarak
-`/Volumes/YEDEK/Coloring-Fun-AI` altında tutulur.
+Ardından ayrı terminallerde worker ve uygulamayı başlatın:
 
 ```bash
-npm run local-ai:setup # Yalnızca ilk kurulumda
-npm run local-ai:start
 npm run worker
 PORT=3002 npm run dev
 ```
 
-Uygulamada **Yapay zekân → Bu Mac → Bu Mac’e bağlan** seçilir. Yerel servis
-yalnızca `127.0.0.1:7861` adresini dinler ve API anahtarı istemez. 16 GB birleşik
-bellekte MPS kararlılığı için her üretim izole bir alt süreçte çalışır.
+Yerel servis yalnızca `127.0.0.1:7861` adresini dinler. Ayrıntılar için
+[`local-ai/README.md`](local-ai/README.md) dosyasına bakın.
 
-Prodüksiyonda `dist/server.cjs` web/API servisi, `dist/worker.cjs` ise sürekli CPU tahsisli ayrı worker servisi olarak çalıştırılır. `dist/cleanup.cjs` günde bir Cloud Scheduler/Cloud Run Job ile çağrılır.
+## Production
+
+```bash
+npm ci
+npm run build
+NODE_ENV=production npm start
+```
+
+`dist/server.cjs` web/API servisini, `dist/worker.cjs` sürekli çalışan worker'ı,
+`dist/cleanup.cjs` ise zamanlanmış temizleme görevini içerir. Worker'ı ayrı bir
+süreçte `npm run start:worker` ile çalıştırın; cleanup görevini periyodik olarak
+`npm run start:cleanup` ile çağırın.
 
 ## Güvenlik modeli
 
-- Çocuklar hesap açmaz; yalnızca ebeveyne bağlı takma ad ve yaş aralığı saklanır.
-- Kullanıcı AI anahtarları AES-256-GCM ile şifrelenir ve API cevaplarına geri verilmez.
-- Prompt ve görsel çıktısı platform moderasyonundan geçmeden saklanmaz.
+- Çocuklar hesap açmaz; ebeveyne bağlı takma ad ve yaş aralığı saklanır.
+- Kullanıcı AI anahtarları AES-256-GCM ile şifrelenir ve API cevaplarına dönmez.
+- Prompt ve görsel çıktısı moderasyondan geçmeden kalıcı olarak saklanmaz.
 - Üretilen içerik varsayılan olarak özeldir.
 - Topluluk yayını yalnızca moderator/admin kararıyla oluşur.
 - Supabase tabloları ve dosya alanları RLS ile korunur.
-- Görsel proxy yalnızca Google çizim hostu ile yapılandırılmış Supabase hostuna izin verir.
+- Görsel proxy yalnızca izin verilen HTTPS hostlarına erişir.
 
-## AI skill zinciri
+Güvenlik açığı bildirmek için [`SECURITY.md`](SECURITY.md) dosyasını izleyin.
 
-Yedi sürümlü skill birlikte derlenir: boyama üretici, yaş uyarlayıcı, sahne bestecisi, prompt güvenliği, çizgi temizleyici, boyanabilirlik değerlendirici ve meta veri üretici. Kullanıcı ham prompt gönderemez. Admin paneli her skill için taslak sürüm, yayınlama ve geri alma sağlar.
-
-## Tarayıcı smoke testi
-
-Playwright Python paketi ve Chromium kuruluysa:
+## Testler
 
 ```bash
+npm run lint
+npm test
 npm run build
-python3 ~/.agents/skills/webapp-testing/scripts/with_server.py \
-  --server "env NODE_ENV=production npm start" --port 3000 \
-  -- python3 tests/browser_smoke.py
 ```
+
+Tarayıcı smoke testleri Python Playwright ve Chromium gerektirir. Çalışan bir
+production sunucusuna karşı örnek:
+
+```bash
+BASE_URL=http://127.0.0.1:3000 python3 tests/browser_smoke.py
+```
+
+Kimlik doğrulamalı smoke testleri için `TEST_ADMIN_EMAIL` ve
+`TEST_ADMIN_PASSWORD` ortam değişkenlerini de sağlayın.
+
+## Katkı ve varlıklar
+
+Katkı süreci için [`CONTRIBUTING.md`](CONTRIBUTING.md) dosyasına bakın. Depodaki
+üçüncü taraf görsellerin kullanım koşulları kaynak kodundan ayrıdır ve
+[`THIRD_PARTY_ASSETS.md`](THIRD_PARTY_ASSETS.md) içinde açıklanır.
+
+## Lisans
+
+Bu depo için henüz bir açık kaynak lisansı seçilmemiştir. Bir `LICENSE` dosyası
+eklenene kadar aksi belirtilmeyen tüm haklar saklıdır.

@@ -12,7 +12,7 @@ BASE_MODEL = "stabilityai/stable-diffusion-xl-base-1.0"
 LIGHTNING_LORA = "ByteDance/SDXL-Lightning"
 COLORING_LORA = "artificialguybr/ColoringBookRedmond"
 FIXED_VAE = "madebyollin/sdxl-vae-fp16-fix"
-MODEL_CACHE = os.environ.get("HF_HOME", "/Volumes/YEDEK/Coloring-Fun-AI/huggingface")
+MODEL_CACHE = os.environ.get("HF_HOME", str(Path.home() / ".cache/coloring-fun-ai/huggingface"))
 
 
 def main():

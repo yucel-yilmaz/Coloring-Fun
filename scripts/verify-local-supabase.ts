@@ -7,8 +7,11 @@ const url = process.env.VITE_SUPABASE_URL;
 const publishableKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 if (!url || !publishableKey) throw new Error('Yerel Supabase public ayarları bulunamadı.');
 
-const email = 'admin@coloring.fun';
-const password = 'LocalAdmin123!';
+const email = process.env.TEST_ADMIN_EMAIL;
+const password = process.env.TEST_ADMIN_PASSWORD;
+if (!email || !password) {
+  throw new Error('TEST_ADMIN_EMAIL ve TEST_ADMIN_PASSWORD ayarlanmalı.');
+}
 const supabase = createClient(url, publishableKey, { auth: { persistSession: false } });
 
 async function request<T>(path: string, token: string, init: RequestInit = {}) {

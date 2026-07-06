@@ -10,7 +10,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
-LOCAL_AI_HOME = Path(os.environ.get("LOCAL_AI_HOME", "/Volumes/YEDEK/Coloring-Fun-AI"))
+LOCAL_AI_HOME = Path(os.environ.get("LOCAL_AI_HOME", Path.home() / ".cache/coloring-fun-ai"))
 GENERATOR_SCRIPT = Path(__file__).with_name("generate_once.py")
 
 app = FastAPI(title="Coloring Fun Local SDXL", docs_url=None, redoc_url=None)
