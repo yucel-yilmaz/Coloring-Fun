@@ -1,7 +1,7 @@
 import { config } from '../config';
 import { requireSupabase } from '../supabase';
 
-function publicStorageUrl(value: string) {
+export function publicStorageUrl(value: string) {
   if (!config.supabasePublicUrl || config.supabasePublicUrl === config.supabaseUrl) return value;
   const source = new URL(value);
   const target = new URL(config.supabasePublicUrl);

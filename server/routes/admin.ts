@@ -3,7 +3,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { asyncRoute, HttpError } from '../http';
 import { requireAdmin, requireAuth, requireStaff } from '../middleware/auth';
-import { attachAssetUrls, deleteArtworkWithAssets } from '../services/assets';
+import { attachAssetUrls, deleteArtworkWithAssets, publicStorageUrl } from '../services/assets';
 import { getCatalogPages } from '../services/catalog';
 import { validateTemplate } from '../services/skills';
 import { requireSupabase } from '../supabase';
@@ -84,9 +84,74 @@ const catalogUpdateSchema = z.object({
   title: z.string().trim().min(1).max(100),
   category: z.enum(['animals', 'dinos', 'vehicles', 'people', 'places', 'space']),
 });
+const imageUrlSchema = z.string().trim().min(1).max(2_000).refine((value) => {
+  if (value.startsWith('/')) return true;
+  try {
+    const url = new URL(value);
+    return ['http:', 'https:'].includes(url.protocol);
+  } catch {
+    return false;
+  }
+}, 'Geçerli bir görsel URL girin.');
+const catalogCreateSchema = catalogUpdateSchema.extend({
+  lineArtUrl: imageUrlSchema.optional(),
+  imageDataUrl: z.string().regex(/^data:image\/(png|jpeg|jpg|webp);base64,/).optional(),
+}).refine((value) => Boolean(value.lineArtUrl || value.imageDataUrl), {
+  message: 'Görsel URL veya bilgisayardan dosya seçin.',
+});
+
+function decodeCatalogImage(imageDataUrl: string) {
+  const match = imageDataUrl.match(/^data:image\/(png|jpeg|jpg|webp);base64,(.+)$/);
+  if (!match) throw new HttpError(400, 'INVALID_IMAGE', 'PNG, JPG veya WEBP görsel yükleyin.');
+  const mimeSubtype = match[1] === 'jpg' ? 'jpeg' : match[1];
+  const buffer = Buffer.from(match[2], 'base64');
+  if (buffer.length > 12 * 1024 * 1024) throw new HttpError(413, 'IMAGE_TOO_LARGE', 'Görsel dosyası çok büyük.');
+  return { buffer, mimeType: `image/${mimeSubtype}`, extension: mimeSubtype === 'jpeg' ? 'jpg' : mimeSubtype };
+}
 
 adminRouter.get('/coloring-pages', requireAdmin, asyncRoute(async (_req, res) => {
   res.json((await getCatalogPages()).filter((item) => !item.hidden));
+}));
+
+adminRouter.post('/coloring-pages', requireAdmin, asyncRoute(async (req, res) => {
+  const input = catalogCreateSchema.parse(req.body);
+  const idBase = input.title
+    .toLocaleLowerCase('tr-TR')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/ı/g, 'i')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 48) || 'sayfa';
+  const pageId = `custom-${idBase}-${randomUUID().slice(0, 8)}`;
+  const supabase = requireSupabase();
+  let lineArtUrl = input.lineArtUrl;
+  if (input.imageDataUrl) {
+    const image = decodeCatalogImage(input.imageDataUrl);
+    const storagePath = `catalog/${pageId}.${image.extension}`;
+    const { error: uploadError } = await supabase.storage.from('public-artworks').upload(storagePath, image.buffer, { contentType: image.mimeType, upsert: true });
+    if (uploadError) throw uploadError;
+    lineArtUrl = publicStorageUrl(supabase.storage.from('public-artworks').getPublicUrl(storagePath).data.publicUrl);
+  }
+  const { error } = await supabase.from('coloring_page_overrides').insert({
+    page_id: pageId,
+    title: input.title,
+    category: input.category,
+    line_art_url: lineArtUrl,
+    hidden: false,
+    updated_by: req.user!.id,
+    updated_at: new Date().toISOString(),
+  });
+  if (error) throw error;
+  await supabase.from('audit_logs').insert({
+    actor_id: req.user!.id,
+    action: 'catalog.create',
+    entity_type: 'coloring_page',
+    entity_id: pageId,
+    metadata: { title: input.title, category: input.category, lineArtUrl, upload: Boolean(input.imageDataUrl) },
+  });
+  const page = (await getCatalogPages()).find((item) => item.id === pageId);
+  res.status(201).json(page);
 }));
 
 adminRouter.patch('/coloring-pages/:id', requireAdmin, asyncRoute(async (req, res) => {
@@ -98,6 +163,7 @@ adminRouter.patch('/coloring-pages/:id', requireAdmin, asyncRoute(async (req, re
     page_id: req.params.id,
     title: input.title,
     category: input.category,
+    line_art_url: page.lineArtUrl,
     hidden: false,
     updated_by: req.user!.id,
     updated_at: new Date().toISOString(),
@@ -115,6 +181,7 @@ adminRouter.delete('/coloring-pages/:id', requireAdmin, asyncRoute(async (req, r
     page_id: req.params.id,
     title: page.title,
     category: page.category,
+    line_art_url: page.lineArtUrl,
     hidden: true,
     updated_by: req.user!.id,
     updated_at: new Date().toISOString(),

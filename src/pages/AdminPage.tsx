@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Check, Code2, Eye, Pencil, RotateCcw, Save, Search, ShieldCheck, Trash2, X } from 'lucide-react';
+import type { FormEvent } from 'react';
+import { Check, Code2, Eye, Pencil, Plus, RotateCcw, Save, Search, ShieldCheck, Trash2, X } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuth } from '../features/auth/AuthProvider';
 
@@ -31,6 +32,12 @@ interface CatalogPage {
   nameTr: string;
   category: Category;
   lineArtUrl: string;
+}
+interface NewCatalogPage {
+  title: string;
+  category: Category;
+  lineArtUrl: string;
+  imageDataUrl: string;
 }
 
 const CATEGORIES: Category[] = ['animals', 'dinos', 'vehicles', 'people', 'places', 'space'];
@@ -70,6 +77,8 @@ export function AdminPage() {
   const [draft, setDraft] = useState<ReturnType<typeof artworkDraft> | null>(null);
   const [catalogEditingId, setCatalogEditingId] = useState<string | null>(null);
   const [catalogDraft, setCatalogDraft] = useState<{ title: string; category: Category } | null>(null);
+  const [newCatalogPage, setNewCatalogPage] = useState<NewCatalogPage>({ title: '', category: 'animals', lineArtUrl: '', imageDataUrl: '' });
+  const [newCatalogFileName, setNewCatalogFileName] = useState('');
 
   const isAdmin = auth.profile?.role === 'admin';
   const loadReviewsAndSkills = () => Promise.all([
@@ -144,6 +153,29 @@ export function AdminPage() {
       await loadCatalogPages();
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Boyama sayfası güncellenemedi.'); }
   };
+  const createCatalogPage = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!newCatalogPage.title.trim() || (!newCatalogPage.lineArtUrl.trim() && !newCatalogPage.imageDataUrl)) return;
+    try {
+      await api('/admin/coloring-pages', { method: 'POST', body: JSON.stringify({ ...newCatalogPage, title: newCatalogPage.title.trim(), lineArtUrl: newCatalogPage.lineArtUrl.trim() || undefined }) });
+      setNewCatalogPage({ title: '', category: 'animals', lineArtUrl: '', imageDataUrl: '' });
+      setNewCatalogFileName('');
+      await loadCatalogPages();
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Boyama sayfası eklenemedi.'); }
+  };
+  const selectCatalogFile = (file?: File) => {
+    if (!file) {
+      setNewCatalogPage({ ...newCatalogPage, imageDataUrl: '' });
+      setNewCatalogFileName('');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setNewCatalogPage((current) => ({ ...current, imageDataUrl: String(reader.result || '') }));
+      setNewCatalogFileName(file.name);
+    };
+    reader.readAsDataURL(file);
+  };
   const removeCatalogPage = async (item: CatalogPage) => {
     if (!window.confirm(`“${item.title || item.nameTr}” Boyama Seç bölümünden silinsin mi?`)) return;
     try { await api(`/admin/coloring-pages/${item.id}`, { method: 'DELETE' }); await loadCatalogPages(); }
@@ -178,7 +210,24 @@ export function AdminPage() {
     </div>
     {error && <div className="mt-6 bg-[#ffceca] border-2 border-black rounded-2xl p-4 font-bold">{error}</div>}
     {tab === 'reviews' && <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">{reviews.map((review) => <article key={review.id} className="bg-white border-ink-thick rounded-3xl p-4 card-shadow"><div className="aspect-[3/4] border-2 border-black rounded-2xl overflow-hidden bg-[#f7f9ff]"><img src={review.artwork.assets.thumbnail || review.artwork.assets.processed} className="w-full h-full object-contain" alt={review.artwork.title}/></div><h2 className="font-display font-black text-xl mt-4">{review.artwork.title}</h2><p className="text-sm font-bold text-black/50">{review.artwork.subject}</p><div className="mt-3 bg-[#f7f9ff] border-2 border-black rounded-xl p-3 text-xs font-bold space-y-1"><p>Sağlayıcı: {review.context?.provider || '-'} · {review.context?.model || '-'}</p><p>Kalite: {review.context?.qualityScore ?? '-'}/100 · Benzer: {review.context?.duplicateCount || 0}</p>{review.context?.prompt && <details><summary className="cursor-pointer">Derlenmiş prompt</summary><p className="mt-2 max-h-28 overflow-auto font-mono font-medium break-words">{review.context.prompt}</p></details>}</div><div className="grid grid-cols-3 gap-2 mt-4"><button onClick={() => decide(review, 'approve')} title="Onayla" className="bg-[#dff3e4] border-2 border-black rounded-xl py-2 grid place-items-center"><Check/></button><button onClick={() => decide(review, 'request_changes')} title="Düzeltme iste" className="bg-[#fff2b2] border-2 border-black rounded-xl py-2 grid place-items-center"><Eye/></button><button onClick={() => decide(review, 'reject')} title="Reddet" className="bg-[#ffceca] border-2 border-black rounded-xl py-2 grid place-items-center"><X/></button></div></article>)}{!reviews.length && <p className="font-display font-black text-xl text-black/50">Bekleyen çalışma yok.</p>}</div>}
-    {tab === 'catalog' && isAdmin && <section className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">{catalogPages.map((item) => {
+    {tab === 'catalog' && isAdmin && <section className="mt-8">
+      <form onSubmit={createCatalogPage} className="bg-white border-ink-thick rounded-3xl p-5 card-shadow mb-7">
+        <div className="flex items-center gap-2 mb-4">
+          <Plus size={20}/>
+          <h2 className="font-display font-black text-2xl">Yeni boyama sayfası ekle</h2>
+        </div>
+        <div className="grid md:grid-cols-[1fr_180px] gap-3">
+          <label className="block text-sm font-black">Başlık<input value={newCatalogPage.title} onChange={(event) => setNewCatalogPage({ ...newCatalogPage, title: event.target.value })} placeholder="Örn. Uçan balon" className="mt-1 w-full border-2 border-black rounded-xl px-3 py-2 font-bold"/></label>
+          <label className="block text-sm font-black">Kategori<select value={newCatalogPage.category} onChange={(event) => setNewCatalogPage({ ...newCatalogPage, category: event.target.value as Category })} className="mt-1 w-full border-2 border-black rounded-xl px-3 py-2 font-bold bg-white">{CATEGORIES.map((category) => <option key={category} value={category}>{category}</option>)}</select></label>
+        </div>
+        <div className="grid md:grid-cols-2 gap-3 mt-3">
+          <label className="block text-sm font-black">Bilgisayardan görsel<input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => selectCatalogFile(event.target.files?.[0])} className="mt-1 w-full border-2 border-black rounded-xl px-3 py-2 font-bold bg-white"/></label>
+          <label className="block text-sm font-black">Görsel URL<input value={newCatalogPage.lineArtUrl} onChange={(event) => setNewCatalogPage({ ...newCatalogPage, lineArtUrl: event.target.value })} placeholder="https://... veya /animals/dosya.jpg" className="mt-1 w-full border-2 border-black rounded-xl px-3 py-2 font-bold"/></label>
+        </div>
+        {newCatalogFileName && <p className="mt-2 text-xs font-bold text-black/55">Seçilen dosya: {newCatalogFileName}</p>}
+        <button disabled={!newCatalogPage.title.trim() || (!newCatalogPage.lineArtUrl.trim() && !newCatalogPage.imageDataUrl)} className="mt-4 bg-[#ffd700] border-2 border-black rounded-full px-5 py-2.5 font-black flex items-center gap-2 disabled:opacity-40"><Plus size={17}/>Ekle</button>
+      </form>
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">{catalogPages.map((item) => {
       const active = catalogEditingId === item.id && catalogDraft;
       return <article key={item.id} className="bg-white border-ink-thick rounded-3xl p-4 card-shadow">
         <div className="aspect-[3/4] border-2 border-black rounded-2xl overflow-hidden bg-[#f7f9ff] grid place-items-center"><img src={item.lineArtUrl} className="w-full h-full object-contain" alt={item.title || item.nameTr}/></div>
@@ -189,7 +238,8 @@ export function AdminPage() {
           <div className="grid grid-cols-2 gap-2"><button onClick={() => saveCatalogPage(item)} className="bg-[#dff3e4] border-2 border-black rounded-xl py-2 font-black flex items-center justify-center gap-2"><Save size={17}/>Kaydet</button><button onClick={() => { setCatalogEditingId(null); setCatalogDraft(null); }} className="bg-white border-2 border-black rounded-xl py-2 font-black">Vazgeç</button></div>
         </div>}
       </article>;
-    })}{!catalogPages.length && <p className="font-display font-black text-xl text-black/50">Katalog görseli bulunamadı.</p>}</section>}
+    })}{!catalogPages.length && <p className="font-display font-black text-xl text-black/50">Katalog görseli bulunamadı.</p>}</div>
+    </section>}
     {tab === 'artworks' && isAdmin && <section className="mt-8">
       <div className="flex flex-col md:flex-row gap-3 md:items-center justify-between">
         <div className="flex flex-wrap gap-2">{STATUSES.map((status) => <button key={status} onClick={() => setArtworkStatus(status)} className={`border-2 border-black rounded-full px-4 py-2 text-sm font-black ${artworkStatus === status ? 'bg-[#dff3e4] card-shadow' : 'bg-white'}`}>{STATUS_LABELS[status] || status}</button>)}</div>

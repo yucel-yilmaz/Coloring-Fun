@@ -8,7 +8,6 @@ import { api } from '../lib/api';
 import type { Animal } from '../types';
 
 interface PublicArtwork { id: string; title: string; category: Animal['category']; assets: Record<string, string> }
-interface CatalogOverride { page_id: string; title?: string | null; category?: Animal['category'] | null; hidden: boolean }
 
 export function HomePage() {
   const navigate = useNavigate();
@@ -16,19 +15,7 @@ export function HomePage() {
   const [community, setCommunity] = useState<Animal[]>([]);
   const [catalog, setCatalog] = useState<Animal[]>(ANIMALS);
   useEffect(() => {
-    api<CatalogOverride[]>('/coloring-pages/overrides').then((overrides) => {
-      const byId = new Map(overrides.map((item) => [item.page_id, item]));
-      setCatalog(ANIMALS.map((item) => {
-        const override = byId.get(item.id);
-        return {
-          ...item,
-          name: override?.title || item.name,
-          nameTr: override?.title || item.nameTr,
-          title: override?.title || item.title,
-          category: override?.category || item.category,
-        };
-      }).filter((item) => !byId.get(item.id)?.hidden));
-    }).catch(() => undefined);
+    api<Animal[]>('/coloring-pages').then(setCatalog).catch(() => undefined);
   }, []);
   useEffect(() => {
     api<PublicArtwork[]>('/artworks/public').then((items) => setCommunity(items.filter((item) => item.assets.processed).map((item, index) => ({
