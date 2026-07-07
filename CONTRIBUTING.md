@@ -5,8 +5,8 @@ Coloring Fun'a katkıda bulunmayı düşündüğünüz için teşekkürler.
 ## Başlamadan önce
 
 - Büyük özellikler ve davranış değişiklikleri için önce bir issue açın.
-- Güvenlik açıklarını herkese açık issue olarak bildirmeyin; `SECURITY.md`
-  içindeki özel bildirim yolunu kullanın.
+- Güvenlik açıklarını herkese açık issue olarak bildirmeyin; depo sahibiyle
+  GitHub üzerinden özel olarak iletişime geçin.
 - Görsel veya model çıktısı eklerken kullanım iznini ve kaynağını belgeleyin.
 
 ## Geliştirme akışı

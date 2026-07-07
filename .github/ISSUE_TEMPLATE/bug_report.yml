@@ -5,7 +5,7 @@ labels: [bug]
 body:
   - type: markdown
     attributes:
-      value: Güvenlik açıklarını burada paylaşmayın; SECURITY.md dosyasını izleyin.
+      value: Güvenlik açıklarını burada paylaşmayın; depo sahibiyle GitHub üzerinden özel olarak iletişime geçin.
   - type: textarea
     id: description
     attributes:

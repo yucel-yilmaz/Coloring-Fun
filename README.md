@@ -1,8 +1,18 @@
 # Coloring Fun
 
+[![CI](https://github.com/yucel-yilmaz/Coloring-Fun/actions/workflows/ci.yml/badge.svg)](https://github.com/yucel-yilmaz/Coloring-Fun/actions/workflows/ci.yml)
+![Node](https://img.shields.io/badge/node-%3E%3D22-339933?logo=node.js&logoColor=white)
+![React](https://img.shields.io/badge/react-19-149eca?logo=react&logoColor=white)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+
+> Diğer diller: [English](README.en.md)
+
 Ebeveyn kontrollü, yapay zekâ destekli bir boyama uygulaması. Ziyaretçiler hazır
 çizimleri hesap açmadan boyayabilir; üyeler Gemini, OpenAI veya Apple Silicon
 üzerinde çalışan yerel SDXL ile yaşa uygun boyama sayfaları üretebilir.
+
+<!-- TODO: Buraya bir ekran görüntüsü veya kısa bir demo GIF'i ekleyin.
+     Örnek: ![Coloring Fun ekran görüntüsü](docs/screenshot.png) -->
 
 ## Özellikler
 
@@ -163,7 +173,8 @@ süreçte `npm run start:worker` ile çalıştırın; cleanup görevini periyodi
 - Supabase tabloları ve dosya alanları RLS ile korunur.
 - Görsel proxy yalnızca izin verilen HTTPS hostlarına erişir.
 
-Güvenlik açığı bildirmek için [`SECURITY.md`](SECURITY.md) dosyasını izleyin.
+Güvenlik açığı bulursanız herkese açık bir issue açmayın; depo sahibiyle GitHub
+üzerinden özel olarak iletişime geçin.
 
 ## Testler
 
@@ -186,8 +197,9 @@ Kimlik doğrulamalı smoke testleri için `TEST_ADMIN_EMAIL` ve
 ## Katkı ve varlıklar
 
 Katkı süreci için [`CONTRIBUTING.md`](CONTRIBUTING.md) dosyasına bakın. Depodaki
-üçüncü taraf görsellerin kullanım koşulları kaynak kodundan ayrıdır ve
-[`THIRD_PARTY_ASSETS.md`](THIRD_PARTY_ASSETS.md) içinde açıklanır.
+üçüncü taraf görsellerin kullanım koşulları kaynak kodundan ayrı olabilir; yeni
+görsel/varlık eklerken kaynağını ve kullanım iznini pull request açıklamasında
+belirtin.
 
 ## Lisans
 
