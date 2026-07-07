@@ -1,4 +1,4 @@
-import { Animal, GalleryItem } from './types';
+import type { Animal, GalleryItem } from './types';
 import { LOCAL_COLORING_PAGES } from './data/localColoringPages';
 
 const LOCAL_CARD_COLORS = [

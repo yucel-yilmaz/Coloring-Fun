@@ -8,11 +8,28 @@ import { api } from '../lib/api';
 import type { Animal } from '../types';
 
 interface PublicArtwork { id: string; title: string; category: Animal['category']; assets: Record<string, string> }
+interface CatalogOverride { page_id: string; title?: string | null; category?: Animal['category'] | null; hidden: boolean }
 
 export function HomePage() {
   const navigate = useNavigate();
   const [category, setCategory] = useState<AnimalCategory>('all');
   const [community, setCommunity] = useState<Animal[]>([]);
+  const [catalog, setCatalog] = useState<Animal[]>(ANIMALS);
+  useEffect(() => {
+    api<CatalogOverride[]>('/coloring-pages/overrides').then((overrides) => {
+      const byId = new Map(overrides.map((item) => [item.page_id, item]));
+      setCatalog(ANIMALS.map((item) => {
+        const override = byId.get(item.id);
+        return {
+          ...item,
+          name: override?.title || item.name,
+          nameTr: override?.title || item.nameTr,
+          title: override?.title || item.title,
+          category: override?.category || item.category,
+        };
+      }).filter((item) => !byId.get(item.id)?.hidden));
+    }).catch(() => undefined);
+  }, []);
   useEffect(() => {
     api<PublicArtwork[]>('/artworks/public').then((items) => setCommunity(items.filter((item) => item.assets.processed).map((item, index) => ({
       id: item.id, name: item.title, nameTr: item.title, title: item.title, lineArtUrl: item.assets.processed,
@@ -20,7 +37,7 @@ export function HomePage() {
       cardBgColor: ['bg-[#dff3e4]', 'bg-[#e6e0ff]', 'bg-[#fff2b2]'][index % 3], hoverBorderColor: 'group-hover:bg-black',
     })))).catch(() => undefined);
   }, []);
-  const pages = useMemo(() => [...ANIMALS, ...community].filter((item) => category === 'all' || item.category === category), [category, community]);
+  const pages = useMemo(() => [...catalog, ...community].filter((item) => category === 'all' || item.category === category), [category, catalog, community]);
   return <>
     <div className="max-w-5xl mx-auto px-6 md:px-12 pt-8">
       <div className="bg-[#001e30] text-white border-ink-thick rounded-[30px] px-6 py-5 shadow-[6px_6px_0_0_#ffd700] flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">

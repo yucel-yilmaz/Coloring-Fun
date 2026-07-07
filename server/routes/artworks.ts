@@ -3,7 +3,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { asyncRoute, HttpError } from '../http';
 import { requireAuth } from '../middleware/auth';
-import { attachAssetUrls } from '../services/assets';
+import { attachAssetUrls, deleteArtworkWithAssets } from '../services/assets';
 import { requireSupabase } from '../supabase';
 import { submitArtworkSchema } from '../validation';
 
@@ -101,11 +101,6 @@ artworksRouter.delete('/:id', asyncRoute(async (req, res) => {
   const supabase = requireSupabase();
   const { data: artwork } = await supabase.from('artworks').select('id').eq('id', req.params.id).eq('owner_id', req.user!.id).single();
   if (!artwork) throw new HttpError(404, 'ARTWORK_NOT_FOUND', 'Çalışma bulunamadı.');
-  const { data: assets } = await supabase.from('artwork_assets').select('bucket, storage_path').eq('artwork_id', artwork.id);
-  const grouped = new Map<string, string[]>();
-  for (const asset of assets || []) grouped.set(asset.bucket, [...(grouped.get(asset.bucket) || []), asset.storage_path]);
-  for (const [bucket, paths] of grouped) await supabase.storage.from(bucket).remove(paths);
-  const { error } = await supabase.from('artworks').delete().eq('id', artwork.id);
-  if (error) throw error;
+  await deleteArtworkWithAssets(artwork.id);
   res.status(204).end();
 }));

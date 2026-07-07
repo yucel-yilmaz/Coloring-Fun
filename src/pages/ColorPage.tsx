@@ -7,6 +7,7 @@ import { api } from '../lib/api';
 import type { Animal } from '../types';
 
 interface Artwork { id: string; title: string; category: Animal['category']; source: string; assets: Record<string, string> }
+interface CatalogOverride { page_id: string; title?: string | null; category?: Animal['category'] | null; hidden: boolean }
 
 export function ColorPage() {
   const { id = '' } = useParams();
@@ -16,6 +17,25 @@ export function ColorPage() {
   const statePage = (location.state as { page?: Animal } | null)?.page;
   const [page, setPage] = useState<Animal | null>(statePage || ANIMALS.find((item) => item.id === id) || null);
   const [error, setError] = useState('');
+  useEffect(() => {
+    if (statePage || !ANIMALS.some((item) => item.id === id)) return;
+    api<CatalogOverride[]>('/coloring-pages/overrides').then((overrides) => {
+      const override = overrides.find((item) => item.page_id === id);
+      if (override?.hidden) {
+        setPage(null);
+        setError('Boyama sayfası bulunamadı.');
+        return;
+      }
+      const localPage = ANIMALS.find((item) => item.id === id);
+      if (localPage && override) setPage({
+        ...localPage,
+        name: override.title || localPage.name,
+        nameTr: override.title || localPage.nameTr,
+        title: override.title || localPage.title,
+        category: override.category || localPage.category,
+      });
+    }).catch(() => undefined);
+  }, [id, statePage]);
   useEffect(() => {
     if (page) return;
     const privateRequest = auth.user ? api<Artwork[]>('/artworks?scope=private') : Promise.resolve([]);

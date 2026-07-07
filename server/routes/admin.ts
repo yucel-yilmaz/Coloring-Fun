@@ -3,7 +3,8 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { asyncRoute, HttpError } from '../http';
 import { requireAdmin, requireAuth, requireStaff } from '../middleware/auth';
-import { attachAssetUrls } from '../services/assets';
+import { attachAssetUrls, deleteArtworkWithAssets } from '../services/assets';
+import { getCatalogPages } from '../services/catalog';
 import { validateTemplate } from '../services/skills';
 import { requireSupabase } from '../supabase';
 import { reviewSchema } from '../validation';
@@ -69,6 +70,103 @@ adminRouter.post('/reviews/:id/decision', requireStaff, asyncRoute(async (req, r
     supabase.from('audit_logs').insert({ actor_id: req.user!.id, action: `artwork.${input.decision}`, entity_type: 'artwork', entity_id: artwork.id }),
   ]);
   res.json({ status: nextStatus });
+}));
+
+const artworkUpdateSchema = z.object({
+  title: z.string().trim().min(1).max(100),
+  subject: z.string().trim().max(160).default(''),
+  category: z.enum(['animals', 'dinos', 'vehicles', 'people', 'places', 'space']),
+  ageBand: z.enum(['3-5', '6-8', '9-12']).nullable(),
+  difficulty: z.enum(['easy', 'medium', 'detailed']).nullable(),
+  status: z.enum(['private', 'submitted', 'under_review', 'published', 'rejected', 'changes_requested', 'withdrawn', 'taken_down', 'archived']),
+});
+const catalogUpdateSchema = z.object({
+  title: z.string().trim().min(1).max(100),
+  category: z.enum(['animals', 'dinos', 'vehicles', 'people', 'places', 'space']),
+});
+
+adminRouter.get('/coloring-pages', requireAdmin, asyncRoute(async (_req, res) => {
+  res.json((await getCatalogPages()).filter((item) => !item.hidden));
+}));
+
+adminRouter.patch('/coloring-pages/:id', requireAdmin, asyncRoute(async (req, res) => {
+  const input = catalogUpdateSchema.parse(req.body);
+  const page = (await getCatalogPages()).find((item) => item.id === req.params.id);
+  if (!page) throw new HttpError(404, 'COLORING_PAGE_NOT_FOUND', 'Boyama sayfası bulunamadı.');
+  const supabase = requireSupabase();
+  const { error } = await supabase.from('coloring_page_overrides').upsert({
+    page_id: req.params.id,
+    title: input.title,
+    category: input.category,
+    hidden: false,
+    updated_by: req.user!.id,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'page_id' });
+  if (error) throw error;
+  await supabase.from('audit_logs').insert({ actor_id: req.user!.id, action: 'catalog.update', entity_type: 'coloring_page', entity_id: req.params.id, metadata: input });
+  res.json({ ...page, title: input.title, name: input.title, nameTr: input.title, category: input.category, hidden: false });
+}));
+
+adminRouter.delete('/coloring-pages/:id', requireAdmin, asyncRoute(async (req, res) => {
+  const page = (await getCatalogPages()).find((item) => item.id === req.params.id);
+  if (!page) throw new HttpError(404, 'COLORING_PAGE_NOT_FOUND', 'Boyama sayfası bulunamadı.');
+  const supabase = requireSupabase();
+  const { error } = await supabase.from('coloring_page_overrides').upsert({
+    page_id: req.params.id,
+    title: page.title,
+    category: page.category,
+    hidden: true,
+    updated_by: req.user!.id,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'page_id' });
+  if (error) throw error;
+  await supabase.from('audit_logs').insert({ actor_id: req.user!.id, action: 'catalog.delete', entity_type: 'coloring_page', entity_id: req.params.id });
+  res.status(204).end();
+}));
+
+adminRouter.get('/artworks', requireAdmin, asyncRoute(async (req, res) => {
+  const status = String(req.query.status || 'all');
+  const search = String(req.query.search || '').trim().replace(/[,%()]/g, ' ');
+  let query = requireSupabase().from('artworks').select('*').order('created_at', { ascending: false }).limit(120);
+  if (status !== 'all') query = query.eq('status', status);
+  if (search) query = query.or(`title.ilike.%${search}%,subject.ilike.%${search}%`);
+  const { data, error } = await query;
+  if (error) throw error;
+  res.json(await attachAssetUrls(data || []));
+}));
+
+adminRouter.patch('/artworks/:id', requireAdmin, asyncRoute(async (req, res) => {
+  const input = artworkUpdateSchema.parse(req.body);
+  const supabase = requireSupabase();
+  const { data: current } = await supabase.from('artworks').select('id').eq('id', req.params.id).single();
+  if (!current) throw new HttpError(404, 'ARTWORK_NOT_FOUND', 'Görsel bulunamadı.');
+  const publishedAt = input.status === 'published' ? new Date().toISOString() : null;
+  const { data, error } = await supabase.from('artworks').update({
+    title: input.title,
+    subject: input.subject,
+    category: input.category,
+    age_band: input.ageBand,
+    difficulty: input.difficulty,
+    status: input.status,
+    published_at: publishedAt,
+    updated_at: new Date().toISOString(),
+  }).eq('id', req.params.id).select('*').single();
+  if (error || !data) throw new HttpError(404, 'ARTWORK_NOT_FOUND', 'Görsel bulunamadı.');
+  await supabase.from('publication_submissions').update({
+    status: input.status,
+    decided_at: ['published', 'rejected', 'changes_requested', 'taken_down', 'withdrawn'].includes(input.status) ? new Date().toISOString() : null,
+  }).eq('artwork_id', req.params.id);
+  await supabase.from('audit_logs').insert({ actor_id: req.user!.id, action: 'artwork.update', entity_type: 'artwork', entity_id: req.params.id, metadata: input });
+  res.json((await attachAssetUrls([data]))[0]);
+}));
+
+adminRouter.delete('/artworks/:id', requireAdmin, asyncRoute(async (req, res) => {
+  const supabase = requireSupabase();
+  const { data: artwork } = await supabase.from('artworks').select('id').eq('id', req.params.id).single();
+  if (!artwork) throw new HttpError(404, 'ARTWORK_NOT_FOUND', 'Görsel bulunamadı.');
+  await deleteArtworkWithAssets(artwork.id);
+  await supabase.from('audit_logs').insert({ actor_id: req.user!.id, action: 'artwork.delete', entity_type: 'artwork', entity_id: req.params.id });
+  res.status(204).end();
 }));
 
 adminRouter.get('/skills', requireAdmin, asyncRoute(async (_req, res) => {

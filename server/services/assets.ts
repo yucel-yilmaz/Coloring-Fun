@@ -28,3 +28,13 @@ export async function attachAssetUrls<T extends { id: string; status: string }>(
     return { ...artwork, assets: urls };
   }));
 }
+
+export async function deleteArtworkWithAssets(artworkId: string) {
+  const supabase = requireSupabase();
+  const { data: assets } = await supabase.from('artwork_assets').select('bucket, storage_path').eq('artwork_id', artworkId);
+  const grouped = new Map<string, string[]>();
+  for (const asset of assets || []) grouped.set(asset.bucket, [...(grouped.get(asset.bucket) || []), asset.storage_path]);
+  for (const [bucket, paths] of grouped) await supabase.storage.from(bucket).remove(paths);
+  const { error } = await supabase.from('artworks').delete().eq('id', artworkId);
+  if (error) throw error;
+}
