@@ -127,8 +127,18 @@ npm run worker
 PORT=3002 npm run dev
 ```
 
-Yerel servis yalnızca `127.0.0.1:7861` adresini dinler. Ayrıntılar için
-[`local-ai/README.md`](local-ai/README.md) dosyasına bakın.
+Varsayılan yerel servis `127.0.0.1:7861` adresini dinler. Eğer ComfyUI
+`127.0.0.1:8188` üzerinde çalışıyorsa `.env.local` içine aşağıdaki satırı ekleyin:
+
+```bash
+LOCAL_IMAGE_API_URL="http://127.0.0.1:8188"
+```
+
+ComfyUI ile üretimde varsayılan checkpoint adı
+`sd_xl_base_1.0.safetensors` olarak beklenir. Farklı bir checkpoint için
+isteğe bağlı olarak `COMFYUI_CHECKPOINT` tanımlayabilirsiniz.
+
+Ayrıntılar için [`local-ai/README.md`](local-ai/README.md) dosyasına bakın.
 
 ## Production
 

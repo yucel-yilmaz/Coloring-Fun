@@ -24,11 +24,36 @@ export async function compileGenerationPrompt(input: Record<string, string>) {
     const version = Array.isArray(skill.ai_skill_versions) ? skill.ai_skill_versions[0] : skill.ai_skill_versions;
     if (!version) throw new HttpError(503, 'SKILL_NOT_PUBLISHED', `${skill.slug} için aktif sürüm bulunamadı.`);
     validateTemplate(`${version.system_template}\n${version.negative_template}`);
-    return { skillId: skill.id, slug: skill.slug, versionId: version.id, version: version.version, qualityRules: version.quality_rules, text: `${Mustache.render(version.system_template, input)}${version.negative_template ? `\nAvoid: ${Mustache.render(version.negative_template, input)}` : ''}` };
+    const systemText = Mustache.render(version.system_template, input).trim();
+    const negativeText = (version.negative_template ? Mustache.render(version.negative_template, input) : '').trim();
+    return {
+      skillId: skill.id,
+      slug: skill.slug,
+      versionId: version.id,
+      version: version.version,
+      qualityRules: version.quality_rules,
+      systemText,
+      negativeText,
+    };
   }).sort((first, second) => order.indexOf(first.slug) - order.indexOf(second.slug));
+
+  const combinedPositive = snapshots
+    .map((item) => item.systemText)
+    .filter(Boolean)
+    .join('\n\n');
+  const combinedNegative = snapshots
+    .map((item) => item.negativeText)
+    .filter(Boolean)
+    .join(', ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
   const qualityRules = snapshots.find((item) => item.slug === 'colorability-evaluator')?.qualityRules || snapshots[0].qualityRules;
   return {
-    prompt: snapshots.map((item) => item.text).join('\n\n'),
-    snapshot: { skills: snapshots.map(({ text: _text, ...item }) => item), qualityRules },
+    prompt: combinedNegative ? `${combinedPositive}\n\nAvoid: ${combinedNegative}` : combinedPositive,
+    snapshot: {
+      skills: snapshots.map(({ systemText: _systemText, negativeText: _negativeText, ...item }) => item),
+      qualityRules,
+    },
   };
 }

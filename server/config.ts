@@ -20,7 +20,11 @@ export const config = {
       .map((email) => email.trim().toLowerCase())
       .filter(Boolean),
   ),
+  dailyGenerationLimit: Number(process.env.DAILY_GENERATION_LIMIT) || 20,
   workerPollMs: Number(process.env.WORKER_POLL_MS) || 2000,
+  comfyControlNetModel: process.env.COMFYUI_CONTROLNET_MODEL || 'diffusers_xl_canny_mid.safetensors',
+  comfyControlNetStrength: Number(process.env.COMFYUI_CONTROLNET_STRENGTH) || 0.45,
+  comfyControlNetEnabled: process.env.COMFYUI_CONTROLNET_ENABLED !== 'false',
 };
 
 export function isCloudConfigured() {

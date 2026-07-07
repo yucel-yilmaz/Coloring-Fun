@@ -36,9 +36,11 @@ async function processJob(job: any) {
     let source: Buffer | null = null;
     for (let attempt = 0; attempt < 2; attempt += 1) {
       await updateJob(job.id, { status: 'generating', progress: 25, attempt_count: attempt + 1 });
-      const providerPrompt = connection.provider === 'local_sdxl' ? buildLocalImagePrompt(job.request) : job.compiled_prompt;
+      const providerPrompt = connection.provider === 'local_sdxl'
+        ? (job.compiled_prompt || buildLocalImagePrompt(job.request))
+        : job.compiled_prompt;
       const correction = connection.provider === 'local_sdxl'
-        ? ' Use fewer lines. Make every coloring area large, white, and fully enclosed by an unbroken outline. Remove solid black fills, texture, shading, and tiny details.'
+        ? ' Use fewer lines. Keep exactly one character, one head, and one face only. Make every coloring area large, white, and fully enclosed by an unbroken outline. Remove extra/duplicate faces, parent-child compositions, solid black fills, texture, shading, mane micro-lines, and tiny details.'
         : '\nÇizgileri kalınlaştır, tüm bölgeleri kapat ve sayfayı sadeleştir.';
       const result = await provider.generate({
         prompt: `${providerPrompt}${attempt ? correction : ''}`,

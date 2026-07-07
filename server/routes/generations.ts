@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { config } from '../config';
 import { asyncRoute, HttpError } from '../http';
 import { requireAuth } from '../middleware/auth';
 import { moderateText } from '../services/moderation';
@@ -21,7 +22,9 @@ generationsRouter.post('/', asyncRoute(async (req, res) => {
   if (!child) throw new HttpError(404, 'CHILD_NOT_FOUND', 'Çocuk profili bulunamadı.');
   if (!connection || connection.status !== 'ready') throw new HttpError(409, 'CONNECTION_NOT_READY', 'AI bağlantısı hazır değil.');
   if ((activeCount || 0) >= 2) throw new HttpError(429, 'CONCURRENT_LIMIT', 'Aynı anda en fazla 2 üretim çalışabilir.');
-  if ((dailyCount || 0) >= 20) throw new HttpError(429, 'DAILY_LIMIT', 'Günlük 20 üretim sınırına ulaştınız.');
+  if ((dailyCount || 0) >= config.dailyGenerationLimit) {
+    throw new HttpError(429, 'DAILY_LIMIT', `Günlük ${config.dailyGenerationLimit} üretim sınırına ulaştınız.`);
+  }
 
   const moderation = await moderateText(`${input.subjectPreset}. ${input.customIdea}`);
   if (moderation.flagged) throw new HttpError(422, 'PROMPT_BLOCKED', 'Bu fikir çocuklara uygun güvenlik kurallarını karşılamıyor.');

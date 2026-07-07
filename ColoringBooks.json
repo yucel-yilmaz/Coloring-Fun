@@ -1,0 +1,128 @@
+{
+  "1": {
+    "inputs": {
+      "ckpt_name": "sd_xl_base_1.0.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": {
+      "title": "Kontrol Noktası Yükle"
+    }
+  },
+  "2": {
+    "inputs": {
+      "lora_name": "ColoringBookRedmond-ColoringBook-ColoringBookAF.safetensors",
+      "strength_model": 1,
+      "strength_clip": 0.9,
+      "model": [
+        "1",
+        0
+      ],
+      "clip": [
+        "1",
+        1
+      ]
+    },
+    "class_type": "LoraLoader",
+    "_meta": {
+      "title": "LoRA Yükle"
+    }
+  },
+  "3": {
+    "inputs": {
+      "add_noise": "enable",
+      "noise_seed": 570322436371145,
+      "steps": 18,
+      "cfg": 7,
+      "sampler_name": "euler",
+      "scheduler": "normal",
+      "start_at_step": 0,
+      "end_at_step": 30,
+      "return_with_leftover_noise": "disable",
+      "model": [
+        "2",
+        0
+      ],
+      "positive": [
+        "24",
+        0
+      ],
+      "negative": [
+        "22",
+        0
+      ],
+      "latent_image": [
+        "20",
+        0
+      ]
+    },
+    "class_type": "KSamplerAdvanced",
+    "_meta": {
+      "title": "KSampler (Gelişmiş)"
+    }
+  },
+  "8": {
+    "inputs": {
+      "samples": [
+        "3",
+        0
+      ],
+      "vae": [
+        "1",
+        2
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Kod Çözme"
+    }
+  },
+  "11": {
+    "inputs": {
+      "images": [
+        "8",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Görüntüyü Önizle"
+    }
+  },
+  "20": {
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "batch_size": 5
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": {
+      "title": "Boş Gizli Görüntü"
+    }
+  },
+  "22": {
+    "inputs": {
+      "text": "background, scenery, landscape, jungle, forest, flowers, grass, plants, trees, mountains, clouds, sun, frame, border, circle, decorative elements, patterns, small details, complex details, many objects, multiple balloons, grayscale, gray, shadows, shading, gradients, texture, hatching, crosshatching, realistic, 3d, photo, color, text, watermark, logo, low quality, bad anatomy, bad hands, text, watermark, blurry, jpeg artifacts, background, scenery, landscape, jungle, forest, flowers, grass, plants, trees, mountains, clouds, sun, frame, border, circle, decorative elements, patterns, small details, complex details, many objects, multiple items, grayscale, gray, shadows, shading, gradients, texture, hatching, crosshatching, realistic, 3d, photo, color, text, watermark, logo, extra legs, extra limbs, extra feet, extra body parts, duplicate legs, malformed animal, deformed anatomy, wrong anatomy, two heads, multiple heads, broken legs, fused legs, too many legs, too many feet, unrealistic animal anatomy",
+      "clip": [
+        "2",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "Negatif Promt"
+    }
+  },
+  "24": {
+    "inputs": {
+      "text": "ColoringBookAF, Coloring Book, single cute baby giraffe, standing side view, four legs only, one head, one long neck, two small horns, one tail, simple correct animal anatomy, black and white coloring page for toddlers, ultra simple line art, very thick black outline, large empty white spaces, no background, isolated character, centered, full body, minimal details, plain white background, no shading, no texture",
+      "clip": [
+        "2",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "Pozitif Promt"
+    }
+  }
+}
