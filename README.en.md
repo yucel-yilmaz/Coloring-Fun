@@ -12,8 +12,19 @@ line art without creating an account; members can generate age-appropriate
 coloring pages with Gemini, OpenAI, or a local SDXL pipeline running on Apple
 Silicon.
 
-<!-- TODO: Add a screenshot or short demo GIF here.
-     Example: ![Coloring Fun screenshot](docs/screenshot.png) -->
+## Screenshots
+
+### Turkish home page
+
+![Turkish home page](docs/screenshots/home-tr.png)
+
+### English settings
+
+![English settings page](docs/screenshots/settings-en.png)
+
+### English home page
+
+![English home page](docs/screenshots/home-en.png)
 
 ## Features
 
@@ -69,6 +80,7 @@ into the browser build; never use that prefix for secrets.
 | `AI_KEYS_MASTER_KEY` | 32-byte hex key encrypting user AI keys |
 | `OPENAI_MODERATION_API_KEY` | Separate OpenAI key for platform moderation |
 | `ADMIN_EMAILS` | Emails promoted to admin on first verified request |
+| `SUPPORT_EMAIL` | Support email shown in the “Contact admin” card on Settings page |
 | `LOCAL_IMAGE_API_URL` | Address of the local image generation service |
 
 You can generate an encryption key with:
@@ -204,6 +216,12 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the contribution process.
 Third-party image assets in this repo may have usage terms separate from the
 source code; document the source and usage permission in your pull request
 description when adding new images/assets.
+
+## Image Titles
+
+- Gallery and catalog titles were cleaned up to be meaningful for users.
+- When adding or editing catalog assets, update titles from the Admin panel “Boyama Seç” section with clear child-friendly wording.
+- For generated content, review and polish titles before submitting to community publication.
 
 ## License
 

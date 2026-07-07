@@ -1,4 +1,5 @@
 import { ArrowLeft, Eraser, Paintbrush, PaintBucket, Redo2, Trash2, Undo2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { ToolType } from '../../types';
 import { playToolSelect } from '../../utils/audio';
 
@@ -9,6 +10,7 @@ interface MobileHeaderProps {
 }
 
 export function MobileHeader({ animalName, onBack, onFinish }: MobileHeaderProps) {
+  const { t } = useTranslation();
   return (
     <div className="w-full md:hidden flex justify-between items-center bg-white border-b-4 border-black px-4 py-3 z-20">
       <button
@@ -26,7 +28,7 @@ export function MobileHeader({ animalName, onBack, onFinish }: MobileHeaderProps
         className="bg-[#ffd700] hover:bg-[#ffe16d] text-black font-display font-extrabold px-4 py-1.5 rounded-full border-2 border-black text-sm card-shadow active:translate-x-0.5 active:translate-y-[2px]"
         id="btn-done-mobile"
       >
-        Bitti! ✨
+        {t('board.mobileDone')}
       </button>
     </div>
   );
@@ -53,6 +55,7 @@ export function ToolSidebar({
   onRedo,
   onClear,
 }: ToolSidebarProps) {
+  const { t } = useTranslation();
   const selectTool = (tool: ToolType) => {
     playToolSelect();
     onToolChange(tool);
@@ -74,33 +77,33 @@ export function ToolSidebar({
         onClick={onBack}
         className="hidden md:flex w-14 h-14 rounded-full border-ink bg-white items-center justify-center card-shadow card-shadow-hover card-shadow-active text-black mb-8 cursor-pointer"
         id="btn-back-desktop"
-        title="Geri Dön"
+        title={t('common.back')}
       >
         <ArrowLeft size={28} className="stroke-[3px]" />
       </button>
 
-      <button onClick={() => selectTool('brush')} className={toolClass('brush')} id="tool-brush" title="Fırça">
+      <button onClick={() => selectTool('brush')} className={toolClass('brush')} id="tool-brush" title={t('board.brush')}>
         <Paintbrush size={24} className="md:size-8 text-black stroke-[2.5px]" />
       </button>
-      <button onClick={() => selectTool('bucket')} className={toolClass('bucket')} id="tool-bucket" title="Kova Dolgusu">
+      <button onClick={() => selectTool('bucket')} className={toolClass('bucket')} id="tool-bucket" title={t('board.bucket')}>
         <PaintBucket size={24} className="md:size-8 text-black stroke-[2.5px]" />
       </button>
-      <button onClick={() => selectTool('eraser')} className={toolClass('eraser')} id="tool-eraser" title="Silgi">
+      <button onClick={() => selectTool('eraser')} className={toolClass('eraser')} id="tool-eraser" title={t('board.eraser')}>
         <Eraser size={24} className="md:size-8 text-black stroke-[2.5px]" />
       </button>
 
       <div className="hidden md:block w-full h-1 bg-black/10 my-4 rounded-full" />
-      <button onClick={onUndo} disabled={!canUndo} className={historyClass(canUndo)} id="tool-undo" title="Geri Al">
+      <button onClick={onUndo} disabled={!canUndo} className={historyClass(canUndo)} id="tool-undo" title={t('board.undo')}>
         <Undo2 size={20} className="md:size-6 text-black stroke-[2.5px]" />
       </button>
-      <button onClick={onRedo} disabled={!canRedo} className={historyClass(canRedo)} id="tool-redo" title="Yinele">
+      <button onClick={onRedo} disabled={!canRedo} className={historyClass(canRedo)} id="tool-redo" title={t('board.redo')}>
         <Redo2 size={20} className="md:size-6 text-black stroke-[2.5px]" />
       </button>
       <button
         onClick={onClear}
         className="w-12 h-12 md:w-14 md:h-14 rounded-full border-ink bg-[#ffceca] flex items-center justify-center card-shadow card-shadow-hover card-shadow-active text-[#ba1724]"
         id="tool-clear"
-        title="Temizle"
+        title={t('board.clear')}
       >
         <Trash2 size={20} className="md:size-6 stroke-[2.5px]" />
       </button>
@@ -123,16 +126,17 @@ export function BoardHeader({
   onBrushSizeChange,
   onFinish,
 }: BoardHeaderProps) {
+  const { t } = useTranslation();
   return (
     <div className="hidden md:flex justify-between items-center mb-6">
       <div>
-        <h1 className="font-display font-extrabold text-3xl text-black">{animalName} Boyama Sayfası 🎨</h1>
-        <p className="font-sans font-medium text-black/60 mt-1">Bir renk seç ve yaratıcılığını konuştur!</p>
+        <h1 className="font-display font-extrabold text-3xl text-black">{t('board.pageTitle', { name: animalName })}</h1>
+        <p className="font-sans font-medium text-black/60 mt-1">{t('board.pageDesc')}</p>
       </div>
       <div className="flex items-center gap-4">
         {activeTool !== 'bucket' && (
           <div className="flex items-center gap-3 bg-white px-4 py-2 border-2 border-black rounded-full shadow-[2px_2px_0px_0px_#000000]">
-            <span className="font-display font-black text-xs">FIRÇA BOYUTU:</span>
+            <span className="font-display font-black text-xs">{t('board.brushSize')}</span>
             <input
               type="range"
               min="4"
@@ -152,7 +156,7 @@ export function BoardHeader({
           className="bg-[#ffd700] hover:bg-[#ffe16d] text-black font-display font-black text-xl px-8 py-3 rounded-full border-ink shadow-[4px_4px_0px_0px_#000000] hover:translate-x-px hover:translate-y-px hover:shadow-[3px_3px_0px_0px_#000000] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all flex items-center gap-2 cursor-pointer"
           id="btn-done-desktop"
         >
-          Tamamladım! ✨
+          {t('board.done')}
         </button>
       </div>
     </div>

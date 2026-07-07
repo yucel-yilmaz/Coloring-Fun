@@ -20,6 +20,7 @@ export const config = {
       .map((email) => email.trim().toLowerCase())
       .filter(Boolean),
   ),
+  supportEmail: (process.env.SUPPORT_EMAIL || '').trim(),
   dailyGenerationLimit: Number(process.env.DAILY_GENERATION_LIMIT) || 20,
   workerPollMs: Number(process.env.WORKER_POLL_MS) || 2000,
   comfyControlNetModel: process.env.COMFYUI_CONTROLNET_MODEL || 'diffusers_xl_canny_mid.safetensors',

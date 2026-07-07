@@ -40,3 +40,8 @@ export const reviewSchema = z.object({
     context.addIssue({ code: 'custom', path: ['note'], message: 'Ret ve düzeltme kararında neden ile açıklama zorunludur.' });
   }
 });
+
+export const supportContactSchema = z.object({
+  subject: z.string().trim().min(3).max(120),
+  message: z.string().trim().min(10).max(1200),
+});

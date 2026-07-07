@@ -1,9 +1,33 @@
 import { Router } from 'express';
+import { config } from '../config';
 import { asyncRoute } from '../http';
 import { requireAuth } from '../middleware/auth';
 import { requireSupabase } from '../supabase';
+import { supportContactSchema } from '../validation';
 
 export const profileRouter = Router();
+profileRouter.get('/support', (_req, res) => {
+  res.json({ supportEmail: config.supportEmail || null });
+});
+
+profileRouter.post('/support', requireAuth, asyncRoute(async (req, res) => {
+  const input = supportContactSchema.parse(req.body);
+  const supabase = requireSupabase();
+  await supabase.from('audit_logs').insert({
+    actor_id: req.user!.id,
+    action: 'support.contact',
+    entity_type: 'support',
+    entity_id: req.user!.id,
+    metadata: {
+      subject: input.subject,
+      message: input.message,
+      email: req.user!.email,
+      supportEmail: config.supportEmail || null,
+    },
+  });
+  res.status(201).json({ ok: true });
+}));
+
 profileRouter.get('/me', requireAuth, (req, res) => {
   res.json({ user: { id: req.user!.id, email: req.user!.email }, profile: req.profile });
 });

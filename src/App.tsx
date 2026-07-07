@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { AppShell } from './components/app/AppShell';
 import { ProtectedRoute } from './components/app/ProtectedRoute';
 import { AuthProvider } from './features/auth/AuthProvider';
@@ -13,7 +14,8 @@ const LoginPage = lazy(() => import('./pages/LoginPage').then((module) => ({ def
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((module) => ({ default: module.SettingsPage })));
 
 export default function App() {
-  return <BrowserRouter><AuthProvider><Suspense fallback={<div className="min-h-screen grid place-items-center font-display font-black">Atölye hazırlanıyor…</div>}><Routes>
+  const { t } = useTranslation();
+  return <BrowserRouter><AuthProvider><Suspense fallback={<div className="min-h-screen grid place-items-center font-display font-black">{t('common.loadingStudio')}</div>}><Routes>
     <Route element={<AppShell />}>
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<LoginPage />} />

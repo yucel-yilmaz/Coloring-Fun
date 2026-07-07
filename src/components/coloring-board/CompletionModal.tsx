@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Heart, PartyPopper, Star } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 type ParticleType = 'circle' | 'square' | 'star' | 'heart';
 
@@ -43,6 +44,7 @@ function createParticles(): Particle[] {
 }
 
 export function CompletionModal({ open, title, onTitleChange, onSave, onClose }: CompletionModalProps) {
+  const { t } = useTranslation();
   const [particles, setParticles] = useState<Particle[]>([]);
 
   useEffect(() => {
@@ -108,17 +110,17 @@ export function CompletionModal({ open, title, onTitleChange, onSave, onClose }:
               <Star size={24} fill="#ffd700" className="stroke-black stroke-[2px]" />
             </div>
 
-            <h2 className="font-display font-extrabold text-4xl text-black mb-1">Harika İş! 🎉</h2>
-            <p className="font-sans font-medium text-black/60 mb-6">Şaheserin galeriye kaydedilmeye hazır!</p>
+            <h2 className="font-display font-extrabold text-4xl text-black mb-1">{t('board.completionTitle')}</h2>
+            <p className="font-sans font-medium text-black/60 mb-6">{t('board.completionDesc')}</p>
             <div className="w-full mb-6">
               <label className="block text-left font-display font-black text-xs text-black mb-2 tracking-wide">
-                🎨 ÇALIŞMANA BİR AD VER:
+                {t('board.nameYourWork')}
               </label>
               <input
                 type="text"
                 value={title}
                 onChange={(event) => onTitleChange(event.target.value)}
-                placeholder="Sevimli Aslanım"
+                placeholder={t('board.titlePlaceholder')}
                 className="w-full text-center font-display font-extrabold text-lg px-4 py-3 rounded-full border-ink bg-[#f7f9ff] text-black focus:outline-none focus:ring-4 focus:ring-[#ffd700] placeholder-black/40"
                 id="input-masterpiece-title"
               />
@@ -130,14 +132,14 @@ export function CompletionModal({ open, title, onTitleChange, onSave, onClose }:
                 id="btn-save-masterpiece"
               >
                 <PartyPopper size={20} />
-                Galeriye Kaydet 🌟
+                {t('board.saveToGallery')}
               </button>
               <button
                 onClick={onClose}
                 className="w-full h-14 bg-white hover:bg-slate-50 text-black font-display font-extrabold text-base border-ink rounded-full shadow-[2px_2px_0px_0px_#000000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
                 id="btn-continue-coloring"
               >
-                Boyamaya Devam Et
+                {t('board.continueColoring')}
               </button>
             </div>
           </motion.div>

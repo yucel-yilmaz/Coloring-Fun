@@ -1,4 +1,5 @@
 import { ArrowRight, HelpCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { Animal } from '../../types';
 import type { AnimalCategory } from '../../features/app/types';
 import { getProxiedImageUrl } from '../../utils/image';
@@ -12,12 +13,12 @@ interface AnimalSelectionProps {
 }
 
 const CATEGORIES = [
-  { id: 'all', label: 'Hepsi ✨', activeClass: 'bg-[#ffd700] shadow-[2px_2px_0px_0px_#000000]' },
-  { id: 'animals', label: 'Hayvan Dostlar 🐾', activeClass: 'bg-[#cbe6ff]' },
-  { id: 'dinos', label: 'Dinozorlar 🦖', activeClass: 'bg-[#ffceca]' },
-  { id: 'vehicles', label: 'Araçlar 🚗', activeClass: 'bg-[#fff2b2]' },
-  { id: 'people', label: 'Ressamlar 🎨', activeClass: 'bg-[#e6e0ff]' },
-  { id: 'places', label: 'Mekânlar 🏠', activeClass: 'bg-[#dff3e4]' },
+  { id: 'all', key: 'animalSelection.all', activeClass: 'bg-[#ffd700] shadow-[2px_2px_0px_0px_#000000]' },
+  { id: 'animals', key: 'animalSelection.animals', activeClass: 'bg-[#cbe6ff]' },
+  { id: 'dinos', key: 'animalSelection.dinos', activeClass: 'bg-[#ffceca]' },
+  { id: 'vehicles', key: 'animalSelection.vehicles', activeClass: 'bg-[#fff2b2]' },
+  { id: 'people', key: 'animalSelection.people', activeClass: 'bg-[#e6e0ff]' },
+  { id: 'places', key: 'animalSelection.places', activeClass: 'bg-[#dff3e4]' },
 ] as const;
 
 export function AnimalSelection({
@@ -27,14 +28,15 @@ export function AnimalSelection({
   onSelectAnimal,
   onOpenGuide,
 }: AnimalSelectionProps) {
+  const { t } = useTranslation();
   return (
     <div className="max-w-5xl mx-auto px-6 md:px-12 py-8 md:py-12 pb-32 animate-pop">
       <div className="mb-10 text-left">
         <h2 className="font-display font-extrabold text-4xl md:text-5xl text-black tracking-tight leading-none">
-          Bir Arkadaş Seç ve Boya! 🦁
+          {t('animalSelection.title')}
         </h2>
         <p className="font-sans font-semibold text-black/60 mt-3 text-lg md:text-xl">
-          Kendi şaheserini yaratmak için bir hayvana veya dinozora dokun.
+          {t('animalSelection.desc')}
         </p>
       </div>
 
@@ -47,7 +49,7 @@ export function AnimalSelection({
               activeCategory === category.id ? category.activeClass : 'bg-white card-shadow'
             }`}
           >
-            {category.label}
+            {t(category.key)}
           </button>
         ))}
       </div>
@@ -84,15 +86,15 @@ export function AnimalSelection({
             <HelpCircle size={24} />
           </div>
           <div>
-            <h4 className="font-display font-black text-lg text-black">Nasıl Oynanır Merak mı Ediyorsun?</h4>
-            <p className="font-sans font-semibold text-black/50 text-sm">Kolay adımlarla harika şaheserler yaratmayı öğren.</p>
+            <h4 className="font-display font-black text-lg text-black">{t('animalSelection.guideTitle')}</h4>
+            <p className="font-sans font-semibold text-black/50 text-sm">{t('animalSelection.guideDesc')}</p>
           </div>
         </div>
         <button
           onClick={onOpenGuide}
           className="bg-[#cbe6ff] hover:bg-[#badeff] border-2 border-black rounded-full px-6 py-2.5 font-display font-black text-sm card-shadow active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer"
         >
-          Rehberi İncele 📖
+          {t('animalSelection.guideButton')}
         </button>
       </div>
     </div>

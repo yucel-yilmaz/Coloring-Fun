@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { 
-  Volume2, 
-  VolumeX, 
-  RotateCcw, 
-  HelpCircle, 
-  Palette, 
-  Check, 
+import { useTranslation } from 'react-i18next';
+import {
+  Volume2,
+  VolumeX,
+  RotateCcw,
+  HelpCircle,
+  Palette,
+  Check,
   RefreshCw,
   Sparkles,
   Heart
@@ -19,6 +20,7 @@ interface SettingsPanelProps {
 }
 
 export default function SettingsPanel({ onResetGallery, soundEnabled, onToggleSound }: SettingsPanelProps) {
+  const { t } = useTranslation();
   const [resetSuccess, setResetSuccess] = useState(false);
 
   const handleReset = () => {
@@ -40,10 +42,10 @@ export default function SettingsPanel({ onResetGallery, soundEnabled, onToggleSo
     <div className="flex-1 w-full max-w-2xl mx-auto px-6 md:px-12 py-8 pb-32 animate-pop select-none">
       <div className="border-b-4 border-black pb-6 mb-8">
         <h2 className="font-display font-extrabold text-4xl text-black">
-          Ayarlar ve Rehber ⚙️
+          {t('settingsPanel.title')}
         </h2>
         <p className="font-sans font-semibold text-black/60 mt-1">
-          Uygulama tercihlerini yönet ve nasıl oynanacağını öğren!
+          {t('settingsPanel.subtitle')}
         </p>
       </div>
 
@@ -51,7 +53,7 @@ export default function SettingsPanel({ onResetGallery, soundEnabled, onToggleSo
         {/* Preference Settings Section */}
         <div className="bg-white border-ink-thick rounded-3xl p-6 shadow-[6px_6px_0px_0px_#000000]">
           <h3 className="font-display font-black text-xl text-black mb-4 flex items-center gap-2">
-            <Palette size={20} /> Oyun Tercihleri
+            <Palette size={20} /> {t('settingsPanel.preferences')}
           </h3>
 
           <div className="space-y-4">
@@ -59,10 +61,10 @@ export default function SettingsPanel({ onResetGallery, soundEnabled, onToggleSo
             <div className="flex justify-between items-center py-2">
               <div>
                 <span className="font-display font-black text-base text-black block">
-                  Baloncuk Sesleri
+                  {t('settingsPanel.soundsTitle')}
                 </span>
                 <span className="font-sans font-medium text-xs text-black/55">
-                  Renk seçerken veya çizerken neşeli sesleri aç/kapa.
+                  {t('settingsPanel.soundsDesc')}
                 </span>
               </div>
               <button
@@ -84,10 +86,10 @@ export default function SettingsPanel({ onResetGallery, soundEnabled, onToggleSo
             <div className="flex justify-between items-center py-2">
               <div>
                 <span className="font-display font-black text-base text-black block">
-                  Galeriyi Sıfırla
+                  {t('settingsPanel.resetTitle')}
                 </span>
                 <span className="font-sans font-medium text-xs text-black/55">
-                  Tüm boyamalarını sil ve varsayılan şaheserleri geri yükle.
+                  {t('settingsPanel.resetDesc')}
                 </span>
               </div>
               <button
@@ -97,11 +99,11 @@ export default function SettingsPanel({ onResetGallery, soundEnabled, onToggleSo
               >
                 {resetSuccess ? (
                   <>
-                    <Check size={16} className="stroke-[3px]" /> Sıfırlandı
+                    <Check size={16} className="stroke-[3px]" /> {t('settingsPanel.resetDone')}
                   </>
                 ) : (
                   <>
-                    <RotateCcw size={16} className="stroke-[3px]" /> Sıfırla
+                    <RotateCcw size={16} className="stroke-[3px]" /> {t('settingsPanel.resetAction')}
                   </>
                 )}
               </button>
@@ -112,7 +114,7 @@ export default function SettingsPanel({ onResetGallery, soundEnabled, onToggleSo
         {/* How to play instruction card for kids and parents */}
         <div className="bg-[#e1f0ff] border-ink-thick rounded-3xl p-6 shadow-[6px_6px_0px_0px_#000000]">
           <h3 className="font-display font-black text-xl text-black mb-4 flex items-center gap-2">
-            <HelpCircle size={20} /> Nasıl Oynanır?
+            <HelpCircle size={20} /> {t('settingsPanel.howToPlay')}
           </h3>
 
           <div className="space-y-4 font-sans font-bold text-sm text-black/80">
@@ -121,7 +123,7 @@ export default function SettingsPanel({ onResetGallery, soundEnabled, onToggleSo
                 1
               </div>
               <p className="mt-1">
-                Ana sayfadan boyamak istediğin sevimli bir <span className="text-[#705d00] font-black">hayvan dostunu</span> seç!
+                {t('settingsPanel.step1')}
               </p>
             </div>
 
@@ -130,7 +132,7 @@ export default function SettingsPanel({ onResetGallery, soundEnabled, onToggleSo
                 2
               </div>
               <p className="mt-1">
-                Sol taraftaki menüden <span className="font-black">Fırça 🖌️</span> veya <span className="font-black">Boya Kovası 🪣</span> aracını seç!
+                {t('settingsPanel.step2')}
               </p>
             </div>
 
@@ -139,7 +141,7 @@ export default function SettingsPanel({ onResetGallery, soundEnabled, onToggleSo
                 3
               </div>
               <p className="mt-1">
-                Alt taraftaki renk paletinden <span className="text-[#0001c0] font-black">en sevdiğin rengi</span> seçerek dokun!
+                {t('settingsPanel.step3')}
               </p>
             </div>
 
@@ -148,7 +150,7 @@ export default function SettingsPanel({ onResetGallery, soundEnabled, onToggleSo
                 4
               </div>
               <p className="mt-1">
-                Görselin üzerine parmağınla veya farenle dokunarak boyamaya başla!
+                {t('settingsPanel.step4')}
               </p>
             </div>
 
@@ -157,7 +159,7 @@ export default function SettingsPanel({ onResetGallery, soundEnabled, onToggleSo
                 5
               </div>
               <p className="mt-1">
-                Tamamladığında <span className="text-green-600 font-black">Bitti ✨</span> butonuna tıkla, esere isim ver ve Galeriye kaydet!
+                {t('settingsPanel.step5')}
               </p>
             </div>
           </div>
@@ -166,10 +168,10 @@ export default function SettingsPanel({ onResetGallery, soundEnabled, onToggleSo
         {/* Fun info card */}
         <div className="bg-white border-ink rounded-2xl p-5 shadow-[4px_4px_0px_0px_#000000] text-center">
           <p className="font-display font-extrabold text-sm text-black flex items-center justify-center gap-1.5">
-            Coloring Fun! ile yaratıcılığın sınırlarını zorla! <Sparkles size={16} className="text-[#ffd700] fill-[#ffd700]" />
+            {t('settingsPanel.footerLine')} <Sparkles size={16} className="text-[#ffd700] fill-[#ffd700]" />
           </p>
           <div className="flex items-center justify-center gap-1 mt-2 text-xs font-sans font-bold text-black/40">
-            <span>Sevgiyle yapıldı</span> <Heart size={12} fill="#ba1724" className="stroke-none" />
+            <span>{t('settingsPanel.madeWithLove')}</span> <Heart size={12} fill="#ba1724" className="stroke-none" />
           </div>
         </div>
       </div>

@@ -11,8 +11,19 @@ Ebeveyn kontrollü, yapay zekâ destekli bir boyama uygulaması. Ziyaretçiler h
 çizimleri hesap açmadan boyayabilir; üyeler Gemini, OpenAI veya Apple Silicon
 üzerinde çalışan yerel SDXL ile yaşa uygun boyama sayfaları üretebilir.
 
-<!-- TODO: Buraya bir ekran görüntüsü veya kısa bir demo GIF'i ekleyin.
-     Örnek: ![Coloring Fun ekran görüntüsü](docs/screenshot.png) -->
+## Ekran görüntüleri
+
+### Türkçe ana sayfa
+
+![Türkçe ana sayfa](docs/screenshots/home-tr.png)
+
+### İngilizce ayarlar
+
+![İngilizce ayarlar sayfası](docs/screenshots/settings-en.png)
+
+### İngilizce ana sayfa
+
+![İngilizce ana sayfa](docs/screenshots/home-en.png)
 
 ## Özellikler
 
@@ -67,6 +78,7 @@ tarayıcı paketine dahil edilir; gizli değerlerde bu öneki kesinlikle kullanm
 | `AI_KEYS_MASTER_KEY` | Kullanıcı AI anahtarlarını şifreleyen 32 baytlık hex anahtar |
 | `OPENAI_MODERATION_API_KEY` | Platform moderasyonu için ayrı OpenAI anahtarı |
 | `ADMIN_EMAILS` | İlk doğrulanmış istekte admin yapılacak e-posta listesi |
+| `SUPPORT_EMAIL` | Ayarlar ekranındaki “Admin ile iletişim” kartında gösterilen destek e-postası |
 | `LOCAL_IMAGE_API_URL` | Yerel görsel servisinin adresi |
 
 Şifreleme anahtarını şu komutla üretebilirsiniz:
@@ -200,6 +212,12 @@ Katkı süreci için [`CONTRIBUTING.md`](CONTRIBUTING.md) dosyasına bakın. Dep
 üçüncü taraf görsellerin kullanım koşulları kaynak kodundan ayrı olabilir; yeni
 görsel/varlık eklerken kaynağını ve kullanım iznini pull request açıklamasında
 belirtin.
+
+## Görsel başlıkları
+
+- Boyama kartlarında görünen başlıklar düzenlenmiş ve anlamlı hale getirilmiştir.
+- Katalog görseli eklerken veya güncellerken Admin panelindeki “Boyama Seç” bölümünden başlığı net ve çocuk dostu olacak şekilde güncelleyin.
+- Otomatik üretilen içerikler topluluğa gönderilmeden önce başlık kontrolü yapın.
 
 ## Lisans
 
