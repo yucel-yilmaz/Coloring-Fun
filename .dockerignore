@@ -1,0 +1,17 @@
+.env
+.env.*
+!.env.example
+.git
+.github
+dist
+node_modules
+coverage
+local-ai
+local-ai/.venv
+local-ai/models
+local-ai/.cache
+*.log
+npm-debug.log*
+Dockerfile
+README.md
+tests

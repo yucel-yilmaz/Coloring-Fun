@@ -13,6 +13,7 @@ export const config = {
   allowDegradedModeration:
     process.env.NODE_ENV !== 'production'
     && process.env.ALLOW_DEGRADED_MODERATION === 'true',
+  localAiEnabled: process.env.LOCAL_AI_ENABLED !== 'false',
   localImageApiUrl: process.env.LOCAL_IMAGE_API_URL || 'http://127.0.0.1:7861',
   adminEmails: new Set(
     (process.env.ADMIN_EMAILS || '')

@@ -72,6 +72,7 @@ tarayıcı paketine dahil edilir; gizli değerlerde bu öneki kesinlikle kullanm
 | `VITE_SUPABASE_URL` | Tarayıcının bağlanacağı Supabase URL'si |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Tarayıcıda kullanılabilen publishable/anon anahtar |
 | `VITE_GOOGLE_AUTH_ENABLED` | Google giriş düğmesini etkinleştirir |
+| `VITE_LOCAL_AI_ENABLED` | Yerel SDXL seçeneğini arayüzde gösterir; kapatmak için `false` |
 | `SUPABASE_URL` | API ve worker için Supabase URL'si |
 | `SUPABASE_PUBLIC_URL` | İstemciye dönen Storage URL'lerinin dış adresi |
 | `SUPABASE_SECRET_KEY` | Yalnızca sunucuda kullanılan secret/service-role anahtarı |
@@ -79,6 +80,7 @@ tarayıcı paketine dahil edilir; gizli değerlerde bu öneki kesinlikle kullanm
 | `OPENAI_MODERATION_API_KEY` | Platform moderasyonu için ayrı OpenAI anahtarı |
 | `ADMIN_EMAILS` | İlk doğrulanmış istekte admin yapılacak e-posta listesi |
 | `SUPPORT_EMAIL` | Ayarlar ekranındaki “Admin ile iletişim” kartında gösterilen destek e-postası |
+| `LOCAL_AI_ENABLED` | Backend'de yerel SDXL bağlantılarını etkinleştirir; kapatmak için `false` |
 | `LOCAL_IMAGE_API_URL` | Yerel görsel servisinin adresi |
 
 Şifreleme anahtarını şu komutla üretebilirsiniz:
@@ -161,6 +163,8 @@ ComfyUI ile üretimde varsayılan checkpoint adı
 isteğe bağlı olarak `COMFYUI_CHECKPOINT` tanımlayabilirsiniz.
 
 Ayrıntılar için [`local-ai/README.md`](local-ai/README.md) dosyasına bakın.
+Yerel SDXL seçeneği varsayılan olarak açıktır; bulut dağıtımlarında kapatmak
+için `VITE_LOCAL_AI_ENABLED=false` ve `LOCAL_AI_ENABLED=false` ayarlayın.
 
 ## Production
 
@@ -174,6 +178,45 @@ NODE_ENV=production npm start
 `dist/cleanup.cjs` ise zamanlanmış temizleme görevini içerir. Worker'ı ayrı bir
 süreçte `npm run start:worker` ile çalıştırın; cleanup görevini periyodik olarak
 `npm run start:cleanup` ile çağırın.
+
+## Coolify
+
+Yerel AI kullanmadan yayınlamak için Docker build tipini seçin. Depodaki
+`Dockerfile` web/API servisini Node 22 ile build eder, `local-ai/` klasörünü
+image içine almaz ve `LOCAL_AI_ENABLED=false` varsayılanıyla çalışır.
+
+Coolify'da aynı repodan iki servis oluşturun:
+
+| Servis | Komut |
+| --- | --- |
+| Web/API | Dockerfile varsayılanı: `npm start` |
+| Worker | Start command override: `npm run start:worker` |
+
+Web/API servisini dışarı açın ve health check path olarak `/api/health` kullanın.
+Worker dış port gerektirmez; Supabase kuyruğunu dinler.
+
+Coolify environment/build variables:
+
+```bash
+NODE_ENV=production
+PORT=3000
+VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+VITE_GOOGLE_AUTH_ENABLED=false
+VITE_LOCAL_AI_ENABLED=false
+SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+SUPABASE_PUBLIC_URL=https://YOUR_PROJECT.supabase.co
+SUPABASE_SECRET_KEY=sb_secret_...
+AI_KEYS_MASTER_KEY=64_HEX_KARAKTER
+OPENAI_MODERATION_API_KEY=sk-...
+LOCAL_AI_ENABLED=false
+ADMIN_EMAILS=admin@example.com
+APP_URL=https://uygulama-adresiniz.example
+WORKER_POLL_MS=2000
+```
+
+`VITE_` ile başlayan değerlerin build sırasında da tanımlı olduğundan emin olun;
+Vite bu değerleri tarayıcı paketine build aşamasında yerleştirir.
 
 ## Güvenlik modeli
 

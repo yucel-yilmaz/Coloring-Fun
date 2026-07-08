@@ -20,6 +20,8 @@ const PROVIDER_KEY_GUIDES = {
     url: 'https://platform.openai.com/api-keys',
   },
 } as const;
+const LOCAL_AI_ENABLED = import.meta.env.VITE_LOCAL_AI_ENABLED !== 'false';
+const PROVIDER_OPTIONS: Provider[] = LOCAL_AI_ENABLED ? ['gemini', 'openai', 'local_sdxl'] : ['gemini', 'openai'];
 const TERMINAL_JOB_STATUSES = ['completed', 'failed', 'blocked', 'cancelled'];
 
 export function CreatePage() {
@@ -61,11 +63,12 @@ export function CreatePage() {
   };
 
   const load = () => Promise.all([api<Child[]>('/child-profiles'), api<Connection[]>('/ai-connections')]).then(([nextChildren, nextConnections]) => {
+    const availableConnections = LOCAL_AI_ENABLED ? nextConnections : nextConnections.filter((item) => item.provider !== 'local_sdxl');
     setChildren(nextChildren);
     setConnections(nextConnections);
     setForm((current) => {
       const child = nextChildren.find((item) => item.id === current.childProfileId) || nextChildren[0];
-      const connection = nextConnections.find((item) => item.id === current.providerConnectionId && item.status === 'ready') || nextConnections.find((item) => item.status === 'ready');
+      const connection = availableConnections.find((item) => item.id === current.providerConnectionId && item.status === 'ready') || availableConnections.find((item) => item.status === 'ready');
       return { ...current, childProfileId: child?.id || '', providerConnectionId: connection?.id || '', ageBand: child?.age_band || current.ageBand, subjectPreset: subjects.includes(current.subjectPreset) ? current.subjectPreset : subjects[0] };
     });
   });
@@ -154,6 +157,7 @@ export function CreatePage() {
       setError(reason instanceof Error ? reason.message : t('create.errors.generateFailed'));
     }
   };
+  const visibleConnections = LOCAL_AI_ENABLED ? connections : connections.filter((connection) => connection.provider !== 'local_sdxl');
 
   return <div className="max-w-6xl mx-auto px-6 py-9 pb-28">
     <div className="mb-8"><span className="font-display font-black text-[#705d00]">{t('create.kicker')}</span><h1 className="font-display font-extrabold text-4xl md:text-5xl mt-1">{t('create.title')}</h1><p className="font-bold text-black/55 mt-2">{t('create.subtitle')}</p></div>
@@ -165,9 +169,9 @@ export function CreatePage() {
           {(!children.length || showChildForm) && <form onSubmit={addChild} className="mt-4 space-y-3"><input required placeholder={t('create.fields.nicknamePlaceholder')} value={childName} onChange={(event) => setChildName(event.target.value)} className="w-full border-2 border-black rounded-xl px-3 py-2.5" /><select value={childAge} onChange={(event) => setChildAge(event.target.value as Child['age_band'])} className="w-full border-2 border-black rounded-xl px-3 py-2.5 bg-white"><option>3-5</option><option>6-8</option><option>9-12</option></select><button className="w-full bg-white border-2 border-black rounded-full py-2.5 font-black flex justify-center gap-2"><Plus />{t('create.actions.createProfile')}</button></form>}
         </section>
         <section className="bg-[#e6e0ff] border-ink-thick rounded-3xl p-5 card-shadow"><div className="flex items-center justify-between"><h2 className="font-display font-black text-xl flex gap-2"><KeyRound />{t('create.sections.ai')}</h2><button onClick={() => setShowConnectionForm((value) => !value)} className="w-9 h-9 bg-white border-2 border-black rounded-full grid place-items-center">{showConnectionForm ? <X size={17} /> : <Plus size={17} />}</button></div>
-          {!!connections.length && <div className="mt-4 space-y-2">{connections.map((connection) => <div key={connection.id} className={`flex border-2 border-black rounded-xl overflow-hidden ${form.providerConnectionId === connection.id ? 'bg-[#ffd700]' : 'bg-white'}`}><button disabled={connection.status !== 'ready'} onClick={() => setForm({ ...form, providerConnectionId: connection.id })} className="flex-1 text-left px-4 py-3 font-bold disabled:opacity-40">{providerLabels[connection.provider]} {connection.masked_hint}<span className="block text-xs opacity-60">{connection.status === 'ready' ? t('create.connection.ready') : t('create.connection.check')}</span></button><button onClick={() => testConnection(connection.id)} title={t('create.actions.testConnection')} className="px-3 border-l-2 border-black bg-[#dff3e4]"><RefreshCw size={16} /></button><button onClick={() => removeConnection(connection.id)} title={t('create.actions.deleteConnection')} className="px-3 border-l-2 border-black bg-[#ffceca]"><Trash2 size={16} /></button></div>)}</div>}
-          {(!connections.length || showConnectionForm) && <form onSubmit={addConnection} className="mt-4 space-y-3">
-            <div className="grid grid-cols-3 gap-2">{(['gemini', 'openai', 'local_sdxl'] as const).map((item) => <button type="button" key={item} onClick={() => setProvider(item)} className={`border-2 border-black rounded-xl py-2 px-1 font-black text-sm ${provider === item ? 'bg-[#ffd700]' : 'bg-white'}`}>{providerLabels[item]}</button>)}</div>
+          {!!visibleConnections.length && <div className="mt-4 space-y-2">{visibleConnections.map((connection) => <div key={connection.id} className={`flex border-2 border-black rounded-xl overflow-hidden ${form.providerConnectionId === connection.id ? 'bg-[#ffd700]' : 'bg-white'}`}><button disabled={connection.status !== 'ready'} onClick={() => setForm({ ...form, providerConnectionId: connection.id })} className="flex-1 text-left px-4 py-3 font-bold disabled:opacity-40">{providerLabels[connection.provider]} {connection.masked_hint}<span className="block text-xs opacity-60">{connection.status === 'ready' ? t('create.connection.ready') : t('create.connection.check')}</span></button><button onClick={() => testConnection(connection.id)} title={t('create.actions.testConnection')} className="px-3 border-l-2 border-black bg-[#dff3e4]"><RefreshCw size={16} /></button><button onClick={() => removeConnection(connection.id)} title={t('create.actions.deleteConnection')} className="px-3 border-l-2 border-black bg-[#ffceca]"><Trash2 size={16} /></button></div>)}</div>}
+          {(!visibleConnections.length || showConnectionForm) && <form onSubmit={addConnection} className="mt-4 space-y-3">
+            <div className={`grid ${LOCAL_AI_ENABLED ? 'grid-cols-3' : 'grid-cols-2'} gap-2`}>{PROVIDER_OPTIONS.map((item) => <button type="button" key={item} onClick={() => setProvider(item)} className={`border-2 border-black rounded-xl py-2 px-1 font-black text-sm ${provider === item ? 'bg-[#ffd700]' : 'bg-white'}`}>{providerLabels[item]}</button>)}</div>
             {provider !== 'local_sdxl' && <a href={PROVIDER_KEY_GUIDES[provider].url} target="_blank" rel="noreferrer" className="flex items-center justify-between gap-2 rounded-xl border-2 border-dashed border-black bg-white/70 px-3 py-2.5 text-sm font-black hover:bg-white"><span>{t(PROVIDER_KEY_GUIDES[provider].labelKey)}</span><ExternalLink size={17} aria-hidden="true" className="shrink-0" /></a>}
             {provider === 'local_sdxl' ? <p className="rounded-xl border-2 border-black bg-white/70 p-3 text-sm font-bold">{t('create.providers.localSdxlHint')}</p> : <><input type="password" required placeholder={t('create.fields.apiKeyPlaceholder')} value={apiKey} onChange={(event) => setApiKey(event.target.value)} className="w-full border-2 border-black rounded-xl px-3 py-2.5" /><p className="text-xs font-bold opacity-60">{t('create.providers.apiKeySecure')}</p></>}
             <button className="w-full bg-white border-2 border-black rounded-full py-2.5 font-black">{provider === 'local_sdxl' ? t('create.actions.connectLocal') : t('create.actions.connectAndVerify')}</button>
