@@ -181,28 +181,28 @@ süreçte `npm run start:worker` ile çalıştırın; cleanup görevini periyodi
 
 ## Coolify
 
-Yerel AI kullanmadan yayınlamak için Docker build tipini seçin. Depodaki
-`Dockerfile` web/API servisini Node 22 ile build eder, `local-ai/` klasörünü
-image içine almaz ve `LOCAL_AI_ENABLED=false` varsayılanıyla çalışır.
+Yerel AI kullanmadan yayınlamak için Coolify'da Docker Compose build tipini
+seçin. Depodaki `docker-compose.yml` tek kurulumda iki servis başlatır:
 
-Coolify'da aynı repodan iki servis oluşturun:
-
-| Servis | Komut |
+| Servis | Açıklama |
 | --- | --- |
-| Web/API | Dockerfile varsayılanı: `npm start` |
-| Worker | Start command override: `npm run start:worker` |
+| `web` | Web uygulaması ve API, dışarıya `3000` portunu açar |
+| `worker` | AI üretim kuyruğunu dinler, dış port gerektirmez |
 
-Web/API servisini dışarı açın ve health check path olarak `/api/health` kullanın.
-Worker dış port gerektirmez; Supabase kuyruğunu dinler.
+`Dockerfile` Node 22 ile build eder, `local-ai/` klasörünü image içine almaz ve
+Compose varsayılanı olarak `LOCAL_AI_ENABLED=false` kullanır. Web servisinin
+health check'i `/api/health` üzerinden yapılır; worker için health check kapalıdır.
 
-Coolify environment/build variables:
+Coolify'da repository için Docker Compose seçin ve environment variables alanına
+`.env.coolify.example` içindeki değerleri gerçek değerlerle ekleyin. En az şu
+değerler gerekir:
 
 ```bash
 NODE_ENV=production
 PORT=3000
 VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
-VITE_GOOGLE_AUTH_ENABLED=false
+VITE_GOOGLE_AUTH_ENABLED=true
 VITE_LOCAL_AI_ENABLED=false
 SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 SUPABASE_PUBLIC_URL=https://YOUR_PROJECT.supabase.co
@@ -216,7 +216,8 @@ WORKER_POLL_MS=2000
 ```
 
 `VITE_` ile başlayan değerlerin build sırasında da tanımlı olduğundan emin olun;
-Vite bu değerleri tarayıcı paketine build aşamasında yerleştirir.
+Vite bu değerleri tarayıcı paketine build aşamasında yerleştirir. Bu değerleri
+değiştirdikten sonra Coolify'da rebuild/redeploy yapın.
 
 ## Güvenlik modeli
 

@@ -8,5 +8,6 @@ __pycache__/
 *.py[cod]
 .env*
 !.env.example
+!.env.coolify.example
 supabase/.temp/
 supabase/.branches/
