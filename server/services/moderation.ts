@@ -1,6 +1,13 @@
-import OpenAI from 'openai';
+import OpenAI, { RateLimitError } from 'openai';
 import { config } from '../config';
 import { HttpError } from '../http';
+
+function toModerationError(error: unknown) {
+  if (error instanceof RateLimitError) {
+    return new HttpError(503, 'MODERATION_RATE_LIMITED', 'Güvenlik kontrol servisi şu anda yoğun. Lütfen birkaç saniye bekleyip tekrar deneyin.');
+  }
+  return error;
+}
 
 const UNSAFE_CHILD_CONTENT = [
   /\b(?:porn|porno|pornografi|seks|sexual|nude|naked|çıplak)\b/iu,
@@ -39,7 +46,7 @@ export async function moderateText(text: string) {
     return { flagged: result.results.some((item) => item.flagged), details: { mode: 'platform-moderation', result: result.results[0] } };
   } catch (error) {
     if (config.allowDegradedModeration) return localTextSafetyCheck(text);
-    throw error;
+    throw toModerationError(error);
   }
 }
 
@@ -55,6 +62,6 @@ export async function moderateImage(buffer: Buffer) {
     return { flagged: result.results.some((item) => item.flagged), details: { mode: 'platform-moderation', result: result.results[0] } };
   } catch (error) {
     if (config.allowDegradedModeration) return { flagged: false, details: { mode: 'provider-image-safety' } };
-    throw error;
+    throw toModerationError(error);
   }
 }
