@@ -9,7 +9,7 @@ function toModerationError(error: unknown) {
   return error;
 }
 
-const MODERATION_MODEL = 'gemini-2.5-flash-lite';
+const MODERATION_MODEL = 'gemini-flash-lite-latest';
 const SAFETY_SETTINGS = [
   HarmCategory.HARM_CATEGORY_HARASSMENT,
   HarmCategory.HARM_CATEGORY_HATE_SPEECH,
@@ -53,7 +53,9 @@ function isBlocked(response: Awaited<ReturnType<GoogleGenAI['models']['generateC
 
 export async function moderateText(text: string) {
   const moderationClient = client();
-  if (!moderationClient) return localTextSafetyCheck(text);
+  const local = localTextSafetyCheck(text);
+  if (local.flagged) return local;
+  if (!moderationClient) return local;
   try {
     const response = await moderationClient.models.generateContent({
       model: MODERATION_MODEL,
@@ -62,7 +64,7 @@ export async function moderateText(text: string) {
     });
     return { flagged: isBlocked(response), details: { mode: 'platform-moderation', promptFeedback: response.promptFeedback, safetyRatings: response.candidates?.[0]?.safetyRatings } };
   } catch (error) {
-    if (config.allowDegradedModeration) return localTextSafetyCheck(text);
+    if (config.allowDegradedModeration) return local;
     throw toModerationError(error);
   }
 }
