@@ -132,6 +132,7 @@ const resources = {
           localSdxlLabel: 'Bu Mac',
           localSdxlHint: 'SDXL-Lightning ve ColoringBook LoRA bu Mac üzerinde çalışır. API anahtarı ve üretim ücreti gerekmez.',
           apiKeySecure: 'Anahtar şifrelenir ve tekrar gösterilmez.',
+          billingRequiredHint: 'Görsel üretim, bu sağlayıcıların ücretsiz katmanında genelde çalışmaz. Hesabına bir ödeme yöntemi eklenmiş olmalı, yoksa üretim "kota" hatasıyla başarısız olur.',
           guides: {
             gemini: 'Google AI Studio’dan Gemini anahtarı al',
             openai: 'OpenAI’dan API anahtarı al',
@@ -368,6 +369,7 @@ const resources = {
           localSdxlLabel: 'This Mac',
           localSdxlHint: 'SDXL-Lightning and ColoringBook LoRA run on this Mac. No API key or generation cost is required.',
           apiKeySecure: 'Keys are encrypted and never shown again.',
+          billingRequiredHint: 'Image generation usually does not work on these providers\' free tiers. Your account needs a payment method on file, or generation will fail with a quota error.',
           guides: {
             gemini: 'Get Gemini key from Google AI Studio',
             openai: 'Get API key from OpenAI',
