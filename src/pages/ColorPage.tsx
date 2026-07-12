@@ -5,6 +5,7 @@ import ColoringBoard from '../components/ColoringBoard';
 import { ANIMALS } from '../data';
 import { useAuth } from '../features/auth/AuthProvider';
 import { api } from '../lib/api';
+import { useSeo } from '../lib/seo';
 import type { Animal } from '../types';
 
 interface Artwork { id: string; title: string; category: Animal['category']; source: string; assets: Record<string, string> }
@@ -43,6 +44,12 @@ export function ColorPage() {
       setPage({ id: item.id, name: item.title, nameTr: item.title, title: item.title, lineArtUrl: item.assets.processed, maskUrl: item.assets.mask, source: item.source === 'generated' ? 'generated' : 'community', artworkId: item.id, category: item.category || 'animals', cardBgColor: 'bg-white', hoverBorderColor: '' });
     }).catch((reason) => setError(reason.message));
   }, [id, page, auth.user, catalogChecked, t]);
+  useSeo({
+    title: page ? t('board.pageTitle', { name: page.name }) : 'Coloring Fun!',
+    description: page ? t('board.pageDesc') : undefined,
+    path: `/color/${id}`,
+    noindex: !page || page.source !== 'curated',
+  });
   if (error) return <div className="min-h-screen grid place-items-center font-display font-black text-xl">{error}</div>;
   if (!page) return <div className="min-h-screen grid place-items-center font-display font-black">{t('colorPage.preparing')}</div>;
   return <ColoringBoard animal={page} onSave={async (title, imageDataUrl) => {

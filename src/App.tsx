@@ -1,9 +1,10 @@
-import { lazy, Suspense } from 'react';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { lazy, Suspense, useEffect } from 'react';
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppShell } from './components/app/AppShell';
 import { ProtectedRoute } from './components/app/ProtectedRoute';
 import { AuthProvider } from './features/auth/AuthProvider';
+import { trackPageview } from './lib/analytics';
 
 const AdminPage = lazy(() => import('./pages/AdminPage').then((module) => ({ default: module.AdminPage })));
 const CloudGalleryPage = lazy(() => import('./pages/CloudGalleryPage').then((module) => ({ default: module.CloudGalleryPage })));
@@ -13,9 +14,17 @@ const HomePage = lazy(() => import('./pages/HomePage').then((module) => ({ defau
 const LoginPage = lazy(() => import('./pages/LoginPage').then((module) => ({ default: module.LoginPage })));
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((module) => ({ default: module.SettingsPage })));
 
+function RouteAnalytics() {
+  const location = useLocation();
+  useEffect(() => {
+    trackPageview(location.pathname + location.search);
+  }, [location.pathname, location.search]);
+  return null;
+}
+
 export default function App() {
   const { t } = useTranslation();
-  return <BrowserRouter><AuthProvider><Suspense fallback={<div className="min-h-screen grid place-items-center font-display font-black">{t('common.loadingStudio')}</div>}><Routes>
+  return <BrowserRouter><AuthProvider><RouteAnalytics /><Suspense fallback={<div className="min-h-screen grid place-items-center font-display font-black">{t('common.loadingStudio')}</div>}><Routes>
     <Route element={<AppShell />}>
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<LoginPage />} />

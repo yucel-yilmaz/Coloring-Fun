@@ -6,6 +6,7 @@ import { AnimalSelection } from '../components/app/AnimalSelection';
 import { ANIMALS } from '../data';
 import type { AnimalCategory } from '../features/app/types';
 import { api } from '../lib/api';
+import { useSeo } from '../lib/seo';
 import type { Animal } from '../types';
 
 interface PublicArtwork { id: string; title: string; category: Animal['category']; assets: Record<string, string> }
@@ -13,6 +14,11 @@ interface PublicArtwork { id: string; title: string; category: Animal['category'
 export function HomePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  useSeo({
+    title: 'Coloring Fun! — Yapay Zeka Destekli Boyama Atölyesi',
+    description: t('home.heroDesc'),
+    path: '/',
+  });
   const [category, setCategory] = useState<AnimalCategory>('all');
   const [community, setCommunity] = useState<Animal[]>([]);
   const [catalog, setCatalog] = useState<Animal[]>(ANIMALS);

@@ -29,6 +29,9 @@ services:
         VITE_SUPABASE_PUBLISHABLE_KEY: ${VITE_SUPABASE_PUBLISHABLE_KEY:?Set VITE_SUPABASE_PUBLISHABLE_KEY}
         VITE_GOOGLE_AUTH_ENABLED: ${VITE_GOOGLE_AUTH_ENABLED:-false}
         VITE_LOCAL_AI_ENABLED: ${VITE_LOCAL_AI_ENABLED:-false}
+        VITE_SITE_URL: ${VITE_SITE_URL:-http://localhost:3000}
+        VITE_PLAUSIBLE_DOMAIN: ${VITE_PLAUSIBLE_DOMAIN:-}
+        VITE_PLAUSIBLE_SCRIPT_URL: ${VITE_PLAUSIBLE_SCRIPT_URL:-}
     image: coloring-fun-app:latest
     restart: unless-stopped
     environment:

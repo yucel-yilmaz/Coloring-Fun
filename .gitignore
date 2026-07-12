@@ -11,3 +11,5 @@ __pycache__/
 !.env.coolify.example
 supabase/.temp/
 supabase/.branches/
+/public/robots.txt
+/public/sitemap.xml
