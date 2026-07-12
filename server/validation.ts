@@ -10,6 +10,10 @@ const connectionModel = z.string().trim().min(1).max(100).optional();
 export const connectionSchema = z.discriminatedUnion('provider', [
   z.object({ provider: z.literal('openai'), apiKey: z.string().trim().min(10).max(500), model: connectionModel }),
   z.object({ provider: z.literal('gemini'), apiKey: z.string().trim().min(10).max(500), model: connectionModel }),
+  z.object({ provider: z.literal('fal'), apiKey: z.string().trim().min(10).max(500), model: connectionModel }),
+  z.object({ provider: z.literal('replicate'), apiKey: z.string().trim().min(10).max(500), model: connectionModel }),
+  z.object({ provider: z.literal('huggingface'), apiKey: z.string().trim().min(10).max(500), model: connectionModel }),
+  z.object({ provider: z.literal('stability'), apiKey: z.string().trim().min(10).max(500), model: connectionModel }),
   z.object({ provider: z.literal('local_sdxl'), apiKey: z.string().optional(), model: connectionModel }),
 ]);
 

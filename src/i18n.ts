@@ -132,10 +132,14 @@ const resources = {
           localSdxlLabel: 'Bu Mac',
           localSdxlHint: 'SDXL-Lightning ve ColoringBook LoRA bu Mac üzerinde çalışır. API anahtarı ve üretim ücreti gerekmez.',
           apiKeySecure: 'Anahtar şifrelenir ve tekrar gösterilmez.',
-          billingRequiredHint: 'Görsel üretim, bu sağlayıcıların ücretsiz katmanında genelde çalışmaz. Hesabına bir ödeme yöntemi eklenmiş olmalı, yoksa üretim "kota" hatasıyla başarısız olur.',
+          billingRequiredHint: 'Bu sağlayıcılarda görsel üretim genelde ücretsiz katmanda çalışmaz ya da sadece küçük bir deneme kredisiyle sınırlıdır. Kredi biterse veya hesapta ödeme yöntemi yoksa üretim "kota" hatasıyla başarısız olur.',
           guides: {
             gemini: 'Google AI Studio’dan Gemini anahtarı al',
             openai: 'OpenAI’dan API anahtarı al',
+            fal: 'fal.ai’dan API anahtarı al',
+            replicate: 'Replicate’ten API anahtarı al',
+            huggingface: 'Hugging Face’ten API anahtarı al',
+            stability: 'Stability AI’dan API anahtarı al',
           },
         },
         subjects: {
@@ -369,10 +373,14 @@ const resources = {
           localSdxlLabel: 'This Mac',
           localSdxlHint: 'SDXL-Lightning and ColoringBook LoRA run on this Mac. No API key or generation cost is required.',
           apiKeySecure: 'Keys are encrypted and never shown again.',
-          billingRequiredHint: 'Image generation usually does not work on these providers\' free tiers. Your account needs a payment method on file, or generation will fail with a quota error.',
+          billingRequiredHint: 'Image generation usually does not work on these providers\' free tiers, or is limited to a small trial credit. Once that runs out (or without a payment method on file), generation fails with a quota error.',
           guides: {
             gemini: 'Get Gemini key from Google AI Studio',
             openai: 'Get API key from OpenAI',
+            fal: 'Get API key from fal.ai',
+            replicate: 'Get API token from Replicate',
+            huggingface: 'Get API token from Hugging Face',
+            stability: 'Get API key from Stability AI',
           },
         },
         subjects: {

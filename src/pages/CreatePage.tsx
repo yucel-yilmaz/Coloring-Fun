@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { api } from '../lib/api';
 
 interface Child { id: string; nickname: string; age_band: '3-5' | '6-8' | '9-12'; avatar_key: string }
-type Provider = 'openai' | 'gemini' | 'local_sdxl';
+type Provider = 'openai' | 'gemini' | 'local_sdxl' | 'fal' | 'replicate' | 'huggingface' | 'stability';
 interface Connection { id: string; provider: Provider; model: string; masked_hint: string; status: string }
 interface Job { id: string; status: string; progress: number; artwork_id?: string; error_code?: string; error_message?: string }
 
@@ -19,9 +19,26 @@ const PROVIDER_KEY_GUIDES = {
     labelKey: 'create.providers.guides.openai',
     url: 'https://platform.openai.com/api-keys',
   },
+  fal: {
+    labelKey: 'create.providers.guides.fal',
+    url: 'https://fal.ai/dashboard/keys',
+  },
+  replicate: {
+    labelKey: 'create.providers.guides.replicate',
+    url: 'https://replicate.com/account/api-tokens',
+  },
+  huggingface: {
+    labelKey: 'create.providers.guides.huggingface',
+    url: 'https://huggingface.co/settings/tokens',
+  },
+  stability: {
+    labelKey: 'create.providers.guides.stability',
+    url: 'https://platform.stability.ai/account/keys',
+  },
 } as const;
 const LOCAL_AI_ENABLED = import.meta.env.VITE_LOCAL_AI_ENABLED !== 'false';
-const PROVIDER_OPTIONS: Provider[] = LOCAL_AI_ENABLED ? ['gemini', 'openai', 'local_sdxl'] : ['gemini', 'openai'];
+const CLOUD_PROVIDER_OPTIONS: Provider[] = ['gemini', 'openai', 'fal', 'replicate', 'huggingface', 'stability'];
+const PROVIDER_OPTIONS: Provider[] = LOCAL_AI_ENABLED ? [...CLOUD_PROVIDER_OPTIONS, 'local_sdxl'] : CLOUD_PROVIDER_OPTIONS;
 const TERMINAL_JOB_STATUSES = ['completed', 'failed', 'blocked', 'cancelled'];
 
 export function CreatePage() {
@@ -42,6 +59,10 @@ export function CreatePage() {
   const providerLabels: Record<Provider, string> = {
     openai: 'OpenAI',
     gemini: 'Gemini',
+    fal: 'fal.ai',
+    replicate: 'Replicate',
+    huggingface: 'Hugging Face',
+    stability: 'Stability AI',
     local_sdxl: t('create.providers.localSdxlLabel'),
   };
 

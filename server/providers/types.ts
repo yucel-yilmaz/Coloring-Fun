@@ -1,4 +1,4 @@
-export type AiProvider = 'openai' | 'gemini' | 'local_sdxl';
+export type AiProvider = 'openai' | 'gemini' | 'local_sdxl' | 'fal' | 'replicate' | 'huggingface' | 'stability';
 
 export interface ProviderGenerationRequest {
   prompt: string;

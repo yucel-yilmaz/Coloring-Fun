@@ -3,9 +3,20 @@ import { config } from '../config';
 import { asyncRoute, HttpError } from '../http';
 import { requireAuth } from '../middleware/auth';
 import { createProvider } from '../providers';
+import type { AiProvider } from '../providers/types';
 import { decryptSecret, encryptSecret, maskSecret } from '../security/crypto';
 import { requireSupabase } from '../supabase';
 import { connectionSchema } from '../validation';
+
+const DEFAULT_MODELS: Record<AiProvider, string> = {
+  openai: 'gpt-image-2',
+  gemini: 'gemini-3.1-flash-image',
+  fal: 'fal-ai/fast-lightning-sdxl',
+  replicate: 'bytedance/sdxl-lightning-4step',
+  huggingface: 'black-forest-labs/FLUX.1-schnell',
+  stability: 'stable-image-core',
+  local_sdxl: 'sdxl-lightning-coloringbook',
+};
 
 export const connectionsRouter = Router();
 connectionsRouter.use(requireAuth);
@@ -27,7 +38,7 @@ connectionsRouter.post('/', asyncRoute(async (req, res) => {
   const since = new Date(Date.now() - 3_600_000).toISOString();
   const { count } = await supabase.from('audit_logs').select('id', { count: 'exact', head: true }).eq('actor_id', req.user!.id).eq('action', 'ai_connection.test').gte('created_at', since);
   if ((count || 0) >= 10) throw new HttpError(429, 'CONNECTION_TEST_LIMIT', 'Bağlantı testi için saatlik sınıra ulaştınız.');
-  const model = input.model || (input.provider === 'openai' ? 'gpt-image-2' : input.provider === 'gemini' ? 'gemini-3.1-flash-image' : 'sdxl-lightning-coloringbook');
+  const model = input.model || DEFAULT_MODELS[input.provider];
   const secret = input.provider === 'local_sdxl' ? 'local-sdxl' : input.apiKey;
   const validation = await createProvider(input.provider, secret).validateConnection();
   const { data, error } = await supabase.from('ai_connections').insert({
