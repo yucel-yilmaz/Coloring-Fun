@@ -148,6 +148,9 @@ const resources = {
         fields: {
           nicknamePlaceholder: 'Takma ad',
           apiKeyPlaceholder: 'API anahtarı',
+          subjectLabel: 'Ne çizelim?',
+          subjectPlaceholder: 'Kendi fikrini yaz, örn. Uzayda yüzen bir kedi',
+          subjectExamplesLabel: 'İlham almak için:',
           customIdeaLabel: 'Eklemek istediğin bir şey var mı?',
           customIdeaPlaceholder: 'Örn. yanında üç büyük çiçek olsun',
           difficulty: 'Zorluk',
@@ -381,6 +384,9 @@ const resources = {
         fields: {
           nicknamePlaceholder: 'Nickname',
           apiKeyPlaceholder: 'API key',
+          subjectLabel: 'What should we draw?',
+          subjectPlaceholder: 'Write your own idea, e.g. A cat floating in space',
+          subjectExamplesLabel: 'Need inspiration?',
           customIdeaLabel: 'Anything else to add?',
           customIdeaPlaceholder: 'e.g. three big flowers on the side',
           difficulty: 'Difficulty',

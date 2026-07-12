@@ -35,7 +35,7 @@ export function CreatePage() {
   const [apiKey, setApiKey] = useState('');
   const [showChildForm, setShowChildForm] = useState(false);
   const [showConnectionForm, setShowConnectionForm] = useState(false);
-  const [form, setForm] = useState({ childProfileId: '', providerConnectionId: '', subjectPreset: t('create.subjects.lion'), customIdea: '', ageBand: '6-8', difficulty: 'easy', sceneDensity: 'simple-scene', lineWeight: 'thick', orientation: 'portrait' });
+  const [form, setForm] = useState({ childProfileId: '', providerConnectionId: '', subjectPreset: '', customIdea: '', ageBand: '6-8', difficulty: 'easy', sceneDensity: 'simple-scene', lineWeight: 'thick', orientation: 'portrait' });
   const [job, setJob] = useState<Job | null>(null);
   const [error, setError] = useState('');
 
@@ -69,13 +69,9 @@ export function CreatePage() {
     setForm((current) => {
       const child = nextChildren.find((item) => item.id === current.childProfileId) || nextChildren[0];
       const connection = availableConnections.find((item) => item.id === current.providerConnectionId && item.status === 'ready') || availableConnections.find((item) => item.status === 'ready');
-      return { ...current, childProfileId: child?.id || '', providerConnectionId: connection?.id || '', ageBand: child?.age_band || current.ageBand, subjectPreset: subjects.includes(current.subjectPreset) ? current.subjectPreset : subjects[0] };
+      return { ...current, childProfileId: child?.id || '', providerConnectionId: connection?.id || '', ageBand: child?.age_band || current.ageBand };
     });
   });
-
-  useEffect(() => {
-    setForm((current) => ({ ...current, subjectPreset: subjects.includes(current.subjectPreset) ? current.subjectPreset : subjects[0] }));
-  }, [subjects]);
 
   useEffect(() => {
     load().catch((reason) => setError(reason.message));
@@ -179,7 +175,11 @@ export function CreatePage() {
         </section>
       </aside>
       <form onSubmit={generate} className="bg-white border-ink-thick rounded-[32px] p-6 md:p-8 shadow-[8px_8px_0_0_#000] space-y-7">
-        <div><h2 className="font-display font-black text-2xl flex gap-2"><Bot />{t('create.sections.scene')}</h2><div className="grid sm:grid-cols-2 gap-3 mt-4">{subjects.map((subject) => <button type="button" key={subject} onClick={() => setForm({ ...form, subjectPreset: subject })} className={`border-2 border-black rounded-2xl p-4 text-left font-display font-black ${form.subjectPreset === subject ? 'bg-[#ffd700] shadow-[3px_3px_0_0_#000]' : 'bg-[#f7f9ff]'}`}>{subject}</button>)}</div></div>
+        <div><h2 className="font-display font-black text-2xl flex gap-2"><Bot />{t('create.sections.scene')}</h2>
+          <label className="block font-black mt-4">{t('create.fields.subjectLabel')}<textarea required maxLength={80} value={form.subjectPreset} onChange={(event) => setForm({ ...form, subjectPreset: event.target.value })} placeholder={t('create.fields.subjectPlaceholder')} className="mt-2 w-full min-h-16 border-2 border-black rounded-2xl p-4 font-medium" /></label>
+          <p className="mt-3 text-xs font-black opacity-60">{t('create.fields.subjectExamplesLabel')}</p>
+          <div className="flex flex-wrap gap-2 mt-2">{subjects.map((subject) => <button type="button" key={subject} onClick={() => setForm({ ...form, subjectPreset: subject })} className="border-2 border-black rounded-full px-3 py-1.5 text-sm font-bold bg-[#f7f9ff] hover:bg-[#ffd700]">{subject}</button>)}</div>
+        </div>
         <label className="block font-black">{t('create.fields.customIdeaLabel')}<textarea maxLength={240} value={form.customIdea} onChange={(event) => setForm({ ...form, customIdea: event.target.value })} placeholder={t('create.fields.customIdeaPlaceholder')} className="mt-2 w-full min-h-24 border-2 border-black rounded-2xl p-4 font-medium" /><span className="float-right text-xs opacity-50">{form.customIdea.length}/240</span></label>
         <div className="grid sm:grid-cols-2 gap-4">{[
           ['create.fields.difficulty', 'difficulty', [['easy', 'create.options.easy'], ['medium', 'create.options.medium'], ['detailed', 'create.options.detailed']]],
@@ -192,7 +192,7 @@ export function CreatePage() {
           <div className="mt-3 h-4 bg-white border-2 border-black rounded-full overflow-hidden"><div className={`h-full transition-all ${TERMINAL_JOB_STATUSES.includes(job.status) && job.status !== 'completed' ? 'bg-[#ef4444]' : 'bg-[#22c55e]'}`} style={{ width: `${job.progress}%` }} /></div>
           {jobStatusMessage(job) && <p className="mt-3 text-sm font-bold text-[#82111d]">{jobStatusMessage(job)}</p>}
           {TERMINAL_JOB_STATUSES.includes(job.status) && job.status !== 'completed' && <button type="button" onClick={() => setJob(null)} className="mt-4 w-full bg-white border-2 border-black rounded-full py-2.5 font-black">{t('create.actions.retry')}</button>}
-        </div> : <button disabled={!form.childProfileId || !form.providerConnectionId} className="w-full bg-[#001e30] text-white border-2 border-black rounded-full py-4 font-display font-black text-lg flex justify-center items-center gap-2 disabled:opacity-35"><Sparkles className="text-[#ffd700]" />{t('create.actions.generate')}</button>}
+        </div> : <button disabled={!form.childProfileId || !form.providerConnectionId || !form.subjectPreset.trim()} className="w-full bg-[#001e30] text-white border-2 border-black rounded-full py-4 font-display font-black text-lg flex justify-center items-center gap-2 disabled:opacity-35"><Sparkles className="text-[#ffd700]" />{t('create.actions.generate')}</button>}
       </form>
     </div>
   </div>;
