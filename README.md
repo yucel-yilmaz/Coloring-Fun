@@ -77,7 +77,7 @@ tarayıcı paketine dahil edilir; gizli değerlerde bu öneki kesinlikle kullanm
 | `SUPABASE_PUBLIC_URL` | İstemciye dönen Storage URL'lerinin dış adresi |
 | `SUPABASE_SECRET_KEY` | Yalnızca sunucuda kullanılan secret/service-role anahtarı |
 | `AI_KEYS_MASTER_KEY` | Kullanıcı AI anahtarlarını şifreleyen 32 baytlık hex anahtar |
-| `OPENAI_MODERATION_API_KEY` | Platform moderasyonu için ayrı OpenAI anahtarı |
+| `GEMINI_MODERATION_API_KEY` | Platform moderasyonu için ayrı Gemini anahtarı |
 | `ADMIN_EMAILS` | İlk doğrulanmış istekte admin yapılacak e-posta listesi |
 | `SUPPORT_EMAIL` | Ayarlar ekranındaki “Admin ile iletişim” kartında gösterilen destek e-postası |
 | `LOCAL_AI_ENABLED` | Backend'de yerel SDXL bağlantılarını etkinleştirir; kapatmak için `false` |
@@ -208,7 +208,7 @@ SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 SUPABASE_PUBLIC_URL=https://YOUR_PROJECT.supabase.co
 SUPABASE_SECRET_KEY=sb_secret_...
 AI_KEYS_MASTER_KEY=64_HEX_KARAKTER
-OPENAI_MODERATION_API_KEY=sk-...
+GEMINI_MODERATION_API_KEY=AIza...
 LOCAL_AI_ENABLED=false
 ADMIN_EMAILS=admin@example.com
 APP_URL=https://uygulama-adresiniz.example

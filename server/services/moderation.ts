@@ -1,13 +1,21 @@
-import OpenAI, { RateLimitError } from 'openai';
+import { ApiError, GoogleGenAI, HarmBlockThreshold, HarmCategory } from '@google/genai';
 import { config } from '../config';
 import { HttpError } from '../http';
 
 function toModerationError(error: unknown) {
-  if (error instanceof RateLimitError) {
+  if (error instanceof ApiError && error.status === 429) {
     return new HttpError(503, 'MODERATION_RATE_LIMITED', 'Güvenlik kontrol servisi şu anda yoğun. Lütfen birkaç saniye bekleyip tekrar deneyin.');
   }
   return error;
 }
+
+const MODERATION_MODEL = 'gemini-2.5-flash-lite';
+const SAFETY_SETTINGS = [
+  HarmCategory.HARM_CATEGORY_HARASSMENT,
+  HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+  HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+  HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+].map((category) => ({ category, threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE }));
 
 const UNSAFE_CHILD_CONTENT = [
   /\b(?:porn|porno|pornografi|seks|sexual|nude|naked|çıplak)\b/iu,
@@ -35,15 +43,24 @@ function client() {
     if (config.allowDegradedModeration) return null;
     throw new HttpError(503, 'MODERATION_NOT_CONFIGURED', 'Güvenlik servisi yapılandırılmadığı için üretim geçici olarak kapalı.');
   }
-  return new OpenAI({ apiKey: config.moderationKey });
+  return new GoogleGenAI({ apiKey: config.moderationKey });
+}
+
+function isBlocked(response: Awaited<ReturnType<GoogleGenAI['models']['generateContent']>>) {
+  return Boolean(response.promptFeedback?.blockReason)
+    || Boolean(response.candidates?.[0]?.safetyRatings?.some((rating) => rating.blocked));
 }
 
 export async function moderateText(text: string) {
   const moderationClient = client();
   if (!moderationClient) return localTextSafetyCheck(text);
   try {
-    const result = await moderationClient.moderations.create({ model: 'omni-moderation-latest', input: text });
-    return { flagged: result.results.some((item) => item.flagged), details: { mode: 'platform-moderation', result: result.results[0] } };
+    const response = await moderationClient.models.generateContent({
+      model: MODERATION_MODEL,
+      contents: text,
+      config: { safetySettings: SAFETY_SETTINGS, maxOutputTokens: 1 },
+    });
+    return { flagged: isBlocked(response), details: { mode: 'platform-moderation', promptFeedback: response.promptFeedback, safetyRatings: response.candidates?.[0]?.safetyRatings } };
   } catch (error) {
     if (config.allowDegradedModeration) return localTextSafetyCheck(text);
     throw toModerationError(error);
@@ -53,13 +70,13 @@ export async function moderateText(text: string) {
 export async function moderateImage(buffer: Buffer) {
   const moderationClient = client();
   if (!moderationClient) return { flagged: false, details: { mode: 'provider-image-safety' } };
-  const dataUrl = `data:image/png;base64,${buffer.toString('base64')}`;
   try {
-    const result = await moderationClient.moderations.create({
-      model: 'omni-moderation-latest',
-      input: [{ type: 'image_url', image_url: { url: dataUrl } }],
+    const response = await moderationClient.models.generateContent({
+      model: MODERATION_MODEL,
+      contents: [{ inlineData: { mimeType: 'image/png', data: buffer.toString('base64') } }],
+      config: { safetySettings: SAFETY_SETTINGS, maxOutputTokens: 1 },
     });
-    return { flagged: result.results.some((item) => item.flagged), details: { mode: 'platform-moderation', result: result.results[0] } };
+    return { flagged: isBlocked(response), details: { mode: 'platform-moderation', promptFeedback: response.promptFeedback, safetyRatings: response.candidates?.[0]?.safetyRatings } };
   } catch (error) {
     if (config.allowDegradedModeration) return { flagged: false, details: { mode: 'provider-image-safety' } };
     throw toModerationError(error);

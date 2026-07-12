@@ -9,7 +9,7 @@ export const config = {
   supabasePublicUrl: process.env.SUPABASE_PUBLIC_URL || process.env.SUPABASE_URL || '',
   supabaseSecretKey: process.env.SUPABASE_SECRET_KEY || '',
   encryptionKey: process.env.AI_KEYS_MASTER_KEY || '',
-  moderationKey: process.env.OPENAI_MODERATION_API_KEY || '',
+  moderationKey: process.env.GEMINI_MODERATION_API_KEY || '',
   allowDegradedModeration:
     process.env.NODE_ENV !== 'production'
     && process.env.ALLOW_DEGRADED_MODERATION === 'true',
