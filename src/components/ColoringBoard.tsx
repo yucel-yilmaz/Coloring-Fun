@@ -20,6 +20,7 @@ export default function ColoringBoard({ animal, onSave, onBack }: ColoringBoardP
   const [selectedColor, setSelectedColor] = useState(DEFAULT_COLOR);
   const [activeTool, setActiveTool] = useState<ToolType>('brush');
   const [brushSize, setBrushSize] = useState(16);
+  const [brushType, setBrushType] = useState<BrushType>(DEFAULT_BRUSH_TYPE);
   const [isCompletionOpen, setIsCompletionOpen] = useState(false);
   const [masterpieceTitle, setMasterpieceTitle] = useState(animal.name);
 
@@ -27,7 +28,7 @@ export default function ColoringBoard({ animal, onSave, onBack }: ColoringBoardP
     animal,
     selectedColor,
     activeTool,
-    brushType: DEFAULT_BRUSH_TYPE,
+    brushType,
     brushSize,
   });
 
@@ -45,7 +46,16 @@ export default function ColoringBoard({ animal, onSave, onBack }: ColoringBoardP
 
   return (
     <div className="flex flex-col md:flex-row relative h-dvh min-h-dvh overflow-x-hidden overflow-y-auto md:overflow-hidden select-none bg-[#f7f9ff]">
-      <MobileHeader animalName={animal.nameTr} onBack={onBack} onFinish={handleFinish} />
+      <MobileHeader
+        animalName={animal.nameTr}
+        activeTool={activeTool}
+        brushSize={brushSize}
+        onBrushSizeChange={setBrushSize}
+        brushType={brushType}
+        onBrushTypeChange={setBrushType}
+        onBack={onBack}
+        onFinish={handleFinish}
+      />
       <ToolSidebar
         activeTool={activeTool}
         canUndo={canvas.canUndo}
@@ -63,6 +73,8 @@ export default function ColoringBoard({ animal, onSave, onBack }: ColoringBoardP
           activeTool={activeTool}
           brushSize={brushSize}
           onBrushSizeChange={setBrushSize}
+          brushType={brushType}
+          onBrushTypeChange={setBrushType}
           onFinish={handleFinish}
         />
         <CanvasStage
@@ -70,12 +82,9 @@ export default function ColoringBoard({ animal, onSave, onBack }: ColoringBoardP
           containerRef={canvas.containerRef}
           canvasRef={canvas.canvasRef}
           lineArtImgRef={canvas.lineArtImgRef}
-          onMouseDown={canvas.startDrawing}
-          onMouseMove={canvas.draw}
-          onMouseUp={canvas.stopDrawing}
-          onTouchStart={canvas.startDrawing}
-          onTouchMove={canvas.draw}
-          onTouchEnd={canvas.stopDrawing}
+          onPointerDown={canvas.startDrawing}
+          onPointerMove={canvas.draw}
+          onPointerUp={canvas.stopDrawing}
         />
         <ColorPalette
           selectedColor={selectedColor}

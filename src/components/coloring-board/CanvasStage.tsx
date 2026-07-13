@@ -7,12 +7,9 @@ interface CanvasStageProps {
   containerRef: React.RefObject<HTMLDivElement | null>;
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   lineArtImgRef: React.RefObject<HTMLImageElement | null>;
-  onMouseDown: React.MouseEventHandler<HTMLCanvasElement>;
-  onMouseMove: React.MouseEventHandler<HTMLCanvasElement>;
-  onMouseUp: React.MouseEventHandler<HTMLCanvasElement>;
-  onTouchStart: React.TouchEventHandler<HTMLCanvasElement>;
-  onTouchMove: React.TouchEventHandler<HTMLCanvasElement>;
-  onTouchEnd: React.TouchEventHandler<HTMLCanvasElement>;
+  onPointerDown: React.PointerEventHandler<HTMLCanvasElement>;
+  onPointerMove: React.PointerEventHandler<HTMLCanvasElement>;
+  onPointerUp: React.PointerEventHandler<HTMLCanvasElement>;
 }
 
 export function CanvasStage({
@@ -20,12 +17,9 @@ export function CanvasStage({
   containerRef,
   canvasRef,
   lineArtImgRef,
-  onMouseDown,
-  onMouseMove,
-  onMouseUp,
-  onTouchStart,
-  onTouchMove,
-  onTouchEnd,
+  onPointerDown,
+  onPointerMove,
+  onPointerUp,
 }: CanvasStageProps) {
   return (
     <div
@@ -35,13 +29,10 @@ export function CanvasStage({
     >
       <canvas
         ref={canvasRef}
-        onMouseDown={onMouseDown}
-        onMouseMove={onMouseMove}
-        onMouseUp={onMouseUp}
-        onMouseLeave={onMouseUp}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
         className="absolute inset-0 w-full h-full block object-contain touch-none"
         id="paint-canvas"
       />

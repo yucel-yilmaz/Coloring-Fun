@@ -1,35 +1,109 @@
-import { ArrowLeft, Eraser, Paintbrush, PaintBucket, Redo2, Trash2, Undo2 } from 'lucide-react';
+import { ArrowLeft, Eraser, Paintbrush, Paintbrush2, PaintBucket, Palette, Pencil, Redo2, SprayCan, Trash2, Undo2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { ToolType } from '../../types';
+import type { BrushType, ToolType } from '../../types';
 import { playToolSelect } from '../../utils/audio';
+
+const BRUSH_TYPES: { type: BrushType; icon: typeof Pencil; labelKey: string }[] = [
+  { type: 'pencil', icon: Pencil, labelKey: 'board.brushPencil' },
+  { type: 'marker', icon: Paintbrush2, labelKey: 'board.brushMarker' },
+  { type: 'crayon', icon: Palette, labelKey: 'board.brushCrayon' },
+  { type: 'spray', icon: SprayCan, labelKey: 'board.brushSpray' },
+];
+
+interface BrushTypePickerProps {
+  brushType: BrushType;
+  onBrushTypeChange: (type: BrushType) => void;
+}
+
+function BrushTypePicker({ brushType, onBrushTypeChange }: BrushTypePickerProps) {
+  const { t } = useTranslation();
+  return (
+    <div className="flex items-center gap-1 shrink-0">
+      {BRUSH_TYPES.map(({ type, icon: Icon, labelKey }) => (
+        <button
+          key={type}
+          onClick={() => {
+            playToolSelect();
+            onBrushTypeChange(type);
+          }}
+          title={t(labelKey)}
+          aria-label={t(labelKey)}
+          data-brush-type={type}
+          className={`w-8 h-8 rounded-full flex items-center justify-center border-2 border-black transition-all cursor-pointer ${
+            brushType === type ? 'bg-[#ffd700] -translate-y-0.5' : 'bg-white'
+          }`}
+        >
+          <Icon size={14} className="text-black stroke-[2.5px]" />
+        </button>
+      ))}
+    </div>
+  );
+}
 
 interface MobileHeaderProps {
   animalName: string;
+  activeTool: ToolType;
+  brushSize: number;
+  onBrushSizeChange: (size: number) => void;
+  brushType: BrushType;
+  onBrushTypeChange: (type: BrushType) => void;
   onBack: () => void;
   onFinish: () => void;
 }
 
-export function MobileHeader({ animalName, onBack, onFinish }: MobileHeaderProps) {
+export function MobileHeader({
+  animalName,
+  activeTool,
+  brushSize,
+  onBrushSizeChange,
+  brushType,
+  onBrushTypeChange,
+  onBack,
+  onFinish,
+}: MobileHeaderProps) {
   const { t } = useTranslation();
   return (
-    <div className="w-full md:hidden flex justify-between items-center bg-white border-b-4 border-black px-4 py-3 z-20">
-      <button
-        onClick={onBack}
-        className="w-10 h-10 rounded-full border-2 border-black flex items-center justify-center bg-white card-shadow active:translate-x-0.5 active:translate-y-0.5"
-        id="btn-back-mobile"
-      >
-        <ArrowLeft size={20} className="stroke-black stroke-[3px]" />
-      </button>
-      <span className="font-display font-extrabold text-xl text-[#705d00] flex items-center gap-1">
-        {animalName} 🎨
-      </span>
-      <button
-        onClick={onFinish}
-        className="bg-[#ffd700] hover:bg-[#ffe16d] text-black font-display font-extrabold px-4 py-1.5 rounded-full border-2 border-black text-sm card-shadow active:translate-x-0.5 active:translate-y-[2px]"
-        id="btn-done-mobile"
-      >
-        {t('board.mobileDone')}
-      </button>
+    <div className="w-full md:hidden flex flex-col bg-white border-b-4 border-black z-20">
+      <div className="flex justify-between items-center px-4 py-3">
+        <button
+          onClick={onBack}
+          className="w-10 h-10 rounded-full border-2 border-black flex items-center justify-center bg-white card-shadow active:translate-x-0.5 active:translate-y-0.5"
+          id="btn-back-mobile"
+        >
+          <ArrowLeft size={20} className="stroke-black stroke-[3px]" />
+        </button>
+        <span className="font-display font-extrabold text-xl text-[#705d00] flex items-center gap-1">
+          {animalName} 🎨
+        </span>
+        <button
+          onClick={onFinish}
+          className="bg-[#ffd700] hover:bg-[#ffe16d] text-black font-display font-extrabold px-4 py-1.5 rounded-full border-2 border-black text-sm card-shadow active:translate-x-0.5 active:translate-y-[2px]"
+          id="btn-done-mobile"
+        >
+          {t('board.mobileDone')}
+        </button>
+      </div>
+      {activeTool !== 'bucket' && (
+        <div className="flex items-center gap-2 px-4 pb-3 overflow-x-auto">
+          {activeTool === 'brush' && (
+            <BrushTypePicker brushType={brushType} onBrushTypeChange={onBrushTypeChange} />
+          )}
+          <span className="font-display font-black text-xs whitespace-nowrap">{t('board.brushSize')}</span>
+          <input
+            type="range"
+            min="4"
+            max="48"
+            value={brushSize}
+            onChange={(event) => onBrushSizeChange(Number(event.target.value))}
+            className="flex-1 accent-[#ffd700] cursor-pointer min-w-16"
+            id="brush-size-mobile"
+          />
+          <div
+            className="rounded-full bg-black shrink-0"
+            style={{ width: Math.max(6, brushSize / 2), height: Math.max(6, brushSize / 2) }}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -116,6 +190,8 @@ interface BoardHeaderProps {
   activeTool: ToolType;
   brushSize: number;
   onBrushSizeChange: (size: number) => void;
+  brushType: BrushType;
+  onBrushTypeChange: (type: BrushType) => void;
   onFinish: () => void;
 }
 
@@ -124,6 +200,8 @@ export function BoardHeader({
   activeTool,
   brushSize,
   onBrushSizeChange,
+  brushType,
+  onBrushTypeChange,
   onFinish,
 }: BoardHeaderProps) {
   const { t } = useTranslation();
@@ -136,6 +214,9 @@ export function BoardHeader({
       <div className="flex items-center gap-4">
         {activeTool !== 'bucket' && (
           <div className="flex items-center gap-3 bg-white px-4 py-2 border-2 border-black rounded-full shadow-[2px_2px_0px_0px_#000000]">
+            {activeTool === 'brush' && (
+              <BrushTypePicker brushType={brushType} onBrushTypeChange={onBrushTypeChange} />
+            )}
             <span className="font-display font-black text-xs">{t('board.brushSize')}</span>
             <input
               type="range"

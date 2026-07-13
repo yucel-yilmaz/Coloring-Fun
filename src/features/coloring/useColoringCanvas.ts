@@ -4,10 +4,7 @@ import type { Animal, BrushType, ToolType } from '../../types';
 import { playBubblePop, playToolSelect } from '../../utils/audio';
 import { getProxiedImageUrl } from '../../utils/image';
 import { createLineArtMask, floodFill, type CachedLineArtMask } from './canvasUtils';
-
-type CanvasPointerEvent =
-  | React.MouseEvent<HTMLCanvasElement>
-  | React.TouchEvent<HTMLCanvasElement>;
+import { createBrushEngine, type StrokeSample } from './brushEngine';
 
 interface UseColoringCanvasOptions {
   animal: Animal;
@@ -45,7 +42,18 @@ export function useColoringCanvas({
   const lineArtSourceRef = useRef<HTMLImageElement | null>(null);
   const lineArtMaskRef = useRef<CachedLineArtMask | null>(null);
   const isDrawingRef = useRef(false);
-  const lastPositionRef = useRef({ x: 0, y: 0 });
+
+  const engineRef = useRef(createBrushEngine());
+  const pendingRef = useRef<StrokeSample[]>([]);
+  const rafRef = useRef<number | null>(null);
+  // Velocity-derived pressure fallback for mouse/finger (no real stylus pressure).
+  const lastSampleRef = useRef<{ x: number; y: number; time: number } | null>(null);
+  const pseudoPressureRef = useRef(0.5);
+
+  // Keep the latest drawing config in a ref so the rAF loop and pointer handlers,
+  // which are created once, always read current values without re-binding listeners.
+  const configRef = useRef({ selectedColor, activeTool, brushType, brushSize });
+  configRef.current = { selectedColor, activeTool, brushType, brushSize };
 
   useEffect(() => {
     const image = new Image();
@@ -90,29 +98,13 @@ export function useColoringCanvas({
     setRedoStack([]);
   };
 
-  const getPosition = (event: CanvasPointerEvent) => {
+  const toCanvasPoint = (clientX: number, clientY: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: -1, y: -1, displayScale: 1 };
     const rect = canvas.getBoundingClientRect();
-
     const renderedScale = Math.min(rect.width / canvas.width, rect.height / canvas.height);
-    const renderedWidth = canvas.width * renderedScale;
-    const renderedHeight = canvas.height * renderedScale;
-    const offsetX = (rect.width - renderedWidth) / 2;
-    const offsetY = (rect.height - renderedHeight) / 2;
-
-    let clientX: number;
-    let clientY: number;
-
-    if ('touches' in event) {
-      if (event.touches.length === 0) return { x: -1, y: -1, displayScale: renderedScale };
-      clientX = event.touches[0].clientX;
-      clientY = event.touches[0].clientY;
-    } else {
-      clientX = event.clientX;
-      clientY = event.clientY;
-    }
-
+    const offsetX = (rect.width - canvas.width * renderedScale) / 2;
+    const offsetY = (rect.height - canvas.height * renderedScale) / 2;
     return {
       x: (clientX - rect.left - offsetX) / renderedScale,
       y: (clientY - rect.top - offsetY) / renderedScale,
@@ -130,11 +122,11 @@ export function useColoringCanvas({
     return mask?.data ?? null;
   };
 
-  const fillArea = (event: CanvasPointerEvent) => {
+  const fillArea = (clientX: number, clientY: number) => {
     const canvas = canvasRef.current;
     const context = canvas?.getContext('2d');
     if (!canvas || !context) return;
-    const position = getPosition(event);
+    const position = toCanvasPoint(clientX, clientY);
     const startX = Math.round(position.x);
     const startY = Math.round(position.y);
     if (startX < 0 || startX >= canvas.width || startY < 0 || startY >= canvas.height) return;
@@ -143,44 +135,128 @@ export function useColoringCanvas({
     if (!mask) return;
     saveToHistory();
     playBubblePop();
-    floodFill(context, mask, startX, startY, selectedColor);
+    floodFill(context, mask, startX, startY, configRef.current.selectedColor);
   };
 
-  const draw = (event: CanvasPointerEvent) => {
-    if (!isDrawingRef.current) return;
-    event.preventDefault();
+  /** Convert one raw pointer event into an engine sample, deriving pressure when the device lacks it. */
+  const toStrokeSample = (
+    clientX: number,
+    clientY: number,
+    pointerType: string,
+    pressure: number,
+  ): StrokeSample => {
+    const point = toCanvasPoint(clientX, clientY);
+    let effective: number;
+    if (pointerType === 'pen' && pressure > 0) {
+      // Lift light stylus touches into a usable range.
+      effective = 0.2 + 0.8 * pressure;
+    } else {
+      const now = performance.now();
+      const last = lastSampleRef.current;
+      if (last) {
+        const dt = Math.max(1, now - last.time);
+        const speed = Math.hypot(clientX - last.x, clientY - last.y) / dt; // px per ms
+        const target = Math.max(0.15, Math.min(1, 1 - speed / 1.6));
+        pseudoPressureRef.current = pseudoPressureRef.current * 0.65 + target * 0.35;
+      }
+      lastSampleRef.current = { x: clientX, y: clientY, time: now };
+      effective = pseudoPressureRef.current;
+    }
+    return { x: point.x, y: point.y, pressure: effective };
+  };
+
+  const currentStrokeParams = (displayScale: number) => {
+    const { selectedColor: color, activeTool: tool, brushType: brush, brushSize: size } = configRef.current;
+    const isEraser = tool === 'eraser';
+    const scaledSize = (isEraser ? size * 1.5 : size) / displayScale;
+    return { brushType: brush, isEraser, color, size: scaledSize };
+  };
+
+  const runFrame = () => {
     const canvas = canvasRef.current;
-    const context = canvas?.getContext('2d');
-    if (!context) return;
-    const position = getPosition(event);
-
-    context.beginPath();
-    context.moveTo(lastPositionRef.current.x, lastPositionRef.current.y);
-    context.lineTo(position.x, position.y);
-    context.strokeStyle = activeTool === 'eraser' ? '#ffffff' : selectedColor;
-    const displayedBrushSize = activeTool === 'eraser' ? brushSize * 1.5 : brushSize;
-    context.lineWidth = displayedBrushSize / position.displayScale;
-    context.shadowColor = selectedColor;
-    context.shadowBlur = brushType === 'crayon' && activeTool !== 'eraser' ? 4 : 0;
-    context.stroke();
-    lastPositionRef.current = position;
-    if (Math.random() < 0.08) playBubblePop();
-  };
-
-  const startDrawing = (event: CanvasPointerEvent) => {
-    event.preventDefault();
-    if (activeTool === 'bucket') {
-      fillArea(event);
+    if (!canvas || !isDrawingRef.current) {
+      rafRef.current = null;
       return;
     }
-    saveToHistory();
-    isDrawingRef.current = true;
-    lastPositionRef.current = getPosition(event);
-    draw(event);
+    const engine = engineRef.current;
+    const pending = pendingRef.current;
+    if (pending.length > 0) {
+      pendingRef.current = [];
+      engine.addSamples(canvas, pending);
+      if (Math.random() < 0.06) playBubblePop();
+    } else if (engine.isSpray()) {
+      engine.tickDwell(canvas);
+    }
+    rafRef.current = requestAnimationFrame(runFrame);
   };
 
-  const stopDrawing = () => {
+  const startDrawing = (event: React.PointerEvent<HTMLCanvasElement>) => {
+    event.preventDefault();
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    if (configRef.current.activeTool === 'bucket') {
+      fillArea(event.clientX, event.clientY);
+      return;
+    }
+
+    saveToHistory();
+    const { displayScale } = toCanvasPoint(event.clientX, event.clientY);
+    const params = currentStrokeParams(displayScale);
+    engineRef.current.beginStroke(canvas, params);
+
+    lastSampleRef.current = null;
+    pseudoPressureRef.current = 0.5;
+    isDrawingRef.current = true;
+    try {
+      canvas.setPointerCapture(event.pointerId);
+    } catch {
+      // setPointerCapture can throw if the pointer is already gone; drawing still works.
+    }
+
+    const sample = toStrokeSample(event.clientX, event.clientY, event.pointerType, event.pressure);
+    pendingRef.current.push(sample);
+    if (rafRef.current === null) rafRef.current = requestAnimationFrame(runFrame);
+  };
+
+  const draw = (event: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!isDrawingRef.current) return;
+    event.preventDefault();
+    const native = event.nativeEvent;
+    const coalesced =
+      typeof native.getCoalescedEvents === 'function' ? native.getCoalescedEvents() : [];
+    const events = coalesced.length > 0 ? coalesced : [native];
+    for (const raw of events) {
+      pendingRef.current.push(
+        toStrokeSample(raw.clientX, raw.clientY, raw.pointerType || event.pointerType, raw.pressure),
+      );
+    }
+  };
+
+  const stopDrawing = (event?: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!isDrawingRef.current) return;
     isDrawingRef.current = false;
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+    const canvas = canvasRef.current;
+    if (canvas) {
+      // Flush any samples that arrived since the last frame, then bake the stroke.
+      if (pendingRef.current.length > 0) {
+        engineRef.current.addSamples(canvas, pendingRef.current);
+        pendingRef.current = [];
+      }
+      engineRef.current.endStroke(canvas);
+      if (event) {
+        try {
+          canvas.releasePointerCapture(event.pointerId);
+        } catch {
+          // Ignore — capture may already be released.
+        }
+      }
+    }
+    lastSampleRef.current = null;
   };
 
   const undo = () => {
