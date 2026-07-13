@@ -10,6 +10,11 @@ import { requireSupabase } from './supabase';
 
 const workerId = `${hostname()}-${process.pid}`;
 
+// Community/open-weight models (often distilled "lightning"/"schnell" few-step variants) follow
+// short English prompts far more reliably than the full multi-skill compiled prompt, which can run
+// past 200 words and is frequently in Turkish. OpenAI and Gemini handle that prompt fine as-is.
+const SHORT_PROMPT_PROVIDERS = new Set(['local_sdxl', 'fal', 'huggingface', 'replicate', 'stability']);
+
 async function updateJob(id: string, payload: Record<string, unknown>) {
   await requireSupabase().from('generation_jobs').update({ ...payload, updated_at: new Date().toISOString(), lease_until: new Date(Date.now() + 300_000).toISOString() }).eq('id', id);
 }
@@ -36,10 +41,11 @@ async function processJob(job: any) {
     let source: Buffer | null = null;
     for (let attempt = 0; attempt < 2; attempt += 1) {
       await updateJob(job.id, { status: 'generating', progress: 25, attempt_count: attempt + 1 });
-      const providerPrompt = connection.provider === 'local_sdxl'
-        ? (job.compiled_prompt || buildLocalImagePrompt(job.request))
+      const useShortPrompt = SHORT_PROMPT_PROVIDERS.has(connection.provider);
+      const providerPrompt = useShortPrompt
+        ? buildLocalImagePrompt(job.request)
         : job.compiled_prompt;
-      const correction = connection.provider === 'local_sdxl'
+      const correction = useShortPrompt
         ? ' Use fewer lines. Keep exactly one character, one head, and one face only. Make every coloring area large, white, and fully enclosed by an unbroken outline. Remove extra/duplicate faces, parent-child compositions, solid black fills, texture, shading, mane micro-lines, and tiny details.'
         : '\nÇizgileri kalınlaştır, tüm bölgeleri kapat ve sayfayı sadeleştir.';
       const result = await provider.generate({
