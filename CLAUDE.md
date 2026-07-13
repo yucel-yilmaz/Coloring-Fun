@@ -23,6 +23,9 @@ providers. Turkish is the primary language (English is fully translated too).
 - `npm run lint` — **`tsc --noEmit`** (typechecks the whole repo, incl. `server/`). Always run before committing.
 - `npm test` — Vitest. Tests live next to sources as `*.test.ts`.
 - `npm run build` — SEO gen + `vite build` + esbuild-bundles the server/worker/cleanup.
+- `npm run db:migrate` — apply `supabase/migrations/*.sql` (tracked in `schema_migrations`, one-time
+  each) against `SUPABASE_DB_URL` (the direct Postgres string). Safe to adopt an existing DB: migrations
+  whose objects already exist are baselined. Write new migrations idempotently. Not needed at runtime.
 
 ## Conventions
 

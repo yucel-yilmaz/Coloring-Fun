@@ -95,10 +95,30 @@ sağlayıcınızın Secret Manager hizmetini kullanın.
 ## Supabase kurulumu
 
 1. Bir Supabase projesi oluşturun.
-2. `supabase/migrations/` altındaki migration dosyalarını sırasıyla uygulayın.
+2. `supabase/migrations/` altındaki migration'ları uygulayın (aşağıya bakın).
 3. Supabase Auth içinde e-posta/şifreyi ve gerekiyorsa Google provider'ını açın.
 4. Site URL ve OAuth callback URL değerlerini uygulamanızın adresine ayarlayın.
 5. Public ve backend değerlerini `.env.local` dosyasına ekleyin.
+
+### Migration'ları uygulama
+
+`npm run db:migrate`, `supabase/migrations/` altındaki dosyaları sırayla uygular
+ve uygulananları `schema_migrations` tablosunda takip eder — her dosya bir kez
+çalışır. Dosyaları daha önce elle uyguladığınız mevcut bir veritabanını benimsemek
+güvenlidir: nesneleri zaten var olan bir migration "already exists" hatasıyla
+atlanıp uygulanmış sayılır (baseline), yeni migration'lar temiz uygulanır.
+
+`SUPABASE_DB_URL` olarak projenin **doğrudan** Postgres bağlantı dizesini verin
+(Supabase → Project Settings → Database):
+
+```bash
+SUPABASE_DB_URL="postgresql://postgres:...@db.<ref>.supabase.co:5432/postgres" npm run db:migrate
+```
+
+Bu, uygulamanın çalışma zamanında ihtiyaç duymadığı tek değişkendir; yalnızca
+migration'ları uygularken gereklidir. Yeni migration dosyalarını idempotent yazın
+(ör. `create ... if not exists`, `drop ... if exists`) ki hem taze hem de
+benimsenmiş veritabanlarında çalışsınlar.
 
 Yerel Supabase için Docker çalışırken:
 
