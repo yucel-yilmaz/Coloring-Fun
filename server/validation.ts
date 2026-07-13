@@ -1,5 +1,11 @@
 import { z } from 'zod';
 
+// Category is data-driven (admins can add new ones): accept any safe slug rather than a fixed list.
+export const categorySlug = z
+  .string()
+  .trim()
+  .regex(/^[a-z0-9-]{2,24}$/, 'Kategori 2-24 karakter; küçük harf, rakam ve tire olmalı.');
+
 export const childProfileSchema = z.object({
   nickname: z.string().trim().min(1).max(40),
   ageBand: z.enum(['3-5', '6-8', '9-12']),
@@ -31,7 +37,7 @@ export const generationSchema = z.object({
 
 export const submitArtworkSchema = z.object({
   title: z.string().trim().min(2).max(100),
-  category: z.enum(['animals', 'dinos', 'vehicles', 'people', 'places', 'space']),
+  category: categorySlug,
   rightsConfirmed: z.literal(true),
 });
 

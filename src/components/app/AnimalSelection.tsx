@@ -2,36 +2,26 @@ import { useEffect, useRef } from 'react';
 import { ArrowRight, HelpCircle, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { Animal } from '../../types';
-import type { AnimalCategory } from '../../features/app/types';
+import type { CategoryTab } from '../../features/app/categories';
 import { getProxiedImageUrl } from '../../utils/image';
 
 interface AnimalSelectionProps {
   animals: Animal[];
-  activeCategory: AnimalCategory;
-  counts: Partial<Record<AnimalCategory, number>>;
+  activeCategory: string;
+  categories: CategoryTab[];
   isLoading: boolean;
-  onCategoryChange: (category: AnimalCategory) => void;
+  onCategoryChange: (category: string) => void;
   onSelectAnimal: (animal: Animal) => void;
   onCreate: () => void;
   onOpenGuide: () => void;
 }
-
-const CATEGORIES = [
-  { id: 'all', key: 'animalSelection.all', emoji: '✨', activeClass: 'bg-[#ffd700]' },
-  { id: 'animals', key: 'animalSelection.animals', emoji: '🐾', activeClass: 'bg-[#cbe6ff]' },
-  { id: 'dinos', key: 'animalSelection.dinos', emoji: '🦖', activeClass: 'bg-[#ffceca]' },
-  { id: 'vehicles', key: 'animalSelection.vehicles', emoji: '🚗', activeClass: 'bg-[#fff2b2]' },
-  { id: 'people', key: 'animalSelection.people', emoji: '🧑', activeClass: 'bg-[#e6e0ff]' },
-  { id: 'places', key: 'animalSelection.places', emoji: '🏠', activeClass: 'bg-[#dff3e4]' },
-  { id: 'space', key: 'animalSelection.space', emoji: '🚀', activeClass: 'bg-[#dde3ff]' },
-] as const;
 
 const SKELETON_COUNT = 8;
 
 export function AnimalSelection({
   animals,
   activeCategory,
-  counts,
+  categories,
   isLoading,
   onCategoryChange,
   onSelectAnimal,
@@ -73,9 +63,8 @@ export function AnimalSelection({
             aria-label={t('animalSelection.categoriesLabel')}
             className="flex gap-3 overflow-x-auto pb-1 scrollbar-none"
           >
-            {CATEGORIES.map((category) => {
+            {categories.map((category) => {
               const isActive = activeCategory === category.id;
-              const count = counts[category.id] ?? 0;
               return (
                 <button
                   key={category.id}
@@ -90,13 +79,13 @@ export function AnimalSelection({
                   }`}
                 >
                   <span aria-hidden className="text-base leading-none">{category.emoji}</span>
-                  <span>{t(category.key)}</span>
+                  <span>{category.label}</span>
                   <span
                     className={`min-w-6 text-center text-xs rounded-full px-1.5 py-0.5 border-2 border-black ${
                       isActive ? 'bg-white' : 'bg-black/5'
                     }`}
                   >
-                    {count}
+                    {category.count}
                   </span>
                 </button>
               );

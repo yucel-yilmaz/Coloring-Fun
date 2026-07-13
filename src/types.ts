@@ -4,7 +4,16 @@ export type BrushType = 'pencil' | 'marker' | 'crayon' | 'spray';
 
 export type AgeBand = '3-5' | '6-8' | '9-12';
 export type Difficulty = 'easy' | 'medium' | 'detailed';
-export type ColoringCategory = 'animals' | 'dinos' | 'vehicles' | 'people' | 'places' | 'space';
+// Categories are data-driven (admin can add new ones), so any slug is valid.
+// The known values are listed for autocomplete/documentation only.
+export type ColoringCategory =
+  | 'animals'
+  | 'dinos'
+  | 'vehicles'
+  | 'people'
+  | 'places'
+  | 'space'
+  | (string & {});
 
 export interface ColoringPage {
   id: string;

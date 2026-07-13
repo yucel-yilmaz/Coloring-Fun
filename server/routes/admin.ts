@@ -7,7 +7,7 @@ import { attachAssetUrls, deleteArtworkWithAssets, publicStorageUrl } from '../s
 import { getCatalogPages } from '../services/catalog';
 import { validateTemplate } from '../services/skills';
 import { requireSupabase } from '../supabase';
-import { reviewSchema } from '../validation';
+import { categorySlug, reviewSchema } from '../validation';
 
 export const adminRouter = Router();
 adminRouter.use(requireAuth);
@@ -75,14 +75,14 @@ adminRouter.post('/reviews/:id/decision', requireStaff, asyncRoute(async (req, r
 const artworkUpdateSchema = z.object({
   title: z.string().trim().min(1).max(100),
   subject: z.string().trim().max(160).default(''),
-  category: z.enum(['animals', 'dinos', 'vehicles', 'people', 'places', 'space']),
+  category: categorySlug,
   ageBand: z.enum(['3-5', '6-8', '9-12']).nullable(),
   difficulty: z.enum(['easy', 'medium', 'detailed']).nullable(),
   status: z.enum(['private', 'submitted', 'under_review', 'published', 'rejected', 'changes_requested', 'withdrawn', 'taken_down', 'archived']),
 });
 const catalogUpdateSchema = z.object({
   title: z.string().trim().min(1).max(100),
-  category: z.enum(['animals', 'dinos', 'vehicles', 'people', 'places', 'space']),
+  category: categorySlug,
 });
 const imageUrlSchema = z.string().trim().min(1).max(2_000).refine((value) => {
   if (value.startsWith('/')) return true;

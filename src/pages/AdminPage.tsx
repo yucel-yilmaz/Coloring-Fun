@@ -3,9 +3,10 @@ import type { FormEvent } from 'react';
 import { Check, Code2, Eye, Pencil, Plus, RotateCcw, Save, Search, ShieldCheck, Trash2, X } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuth } from '../features/auth/AuthProvider';
+import { slugifyCategory } from '../features/app/categories';
 
 type AdminTab = 'reviews' | 'catalog' | 'artworks' | 'skills';
-type Category = 'animals' | 'dinos' | 'vehicles' | 'people' | 'places' | 'space';
+type Category = string;
 type AgeBand = '3-5' | '6-8' | '9-12';
 type Difficulty = 'easy' | 'medium' | 'detailed';
 
@@ -40,7 +41,7 @@ interface NewCatalogPage {
   imageDataUrl: string;
 }
 
-const CATEGORIES: Category[] = ['animals', 'dinos', 'vehicles', 'people', 'places', 'space'];
+const BASE_CATEGORIES: Category[] = ['animals', 'dinos', 'vehicles', 'people', 'places', 'space'];
 const STATUSES = ['all', 'private', 'submitted', 'under_review', 'published', 'changes_requested', 'rejected', 'withdrawn', 'taken_down', 'archived'];
 const STATUS_LABELS: Record<string, string> = { all: 'Hepsi', private: 'Özel', submitted: 'Gönderildi', under_review: 'İncelemede', published: 'Yayında', changes_requested: 'Düzeltme', rejected: 'Reddedildi', withdrawn: 'Geri çekildi', taken_down: 'Kaldırıldı', archived: 'Arşiv' };
 const DIFFICULTY_LABELS: Record<Difficulty, string> = { easy: 'Kolay', medium: 'Orta', detailed: 'Detaylı' };
@@ -129,7 +130,7 @@ export function AdminPage() {
   const saveArtwork = async (item: Artwork) => {
     if (!draft) return;
     try {
-      await api(`/admin/artworks/${item.id}`, { method: 'PATCH', body: JSON.stringify({ ...draft, ageBand: draft.ageBand || null, difficulty: draft.difficulty || null }) });
+      await api(`/admin/artworks/${item.id}`, { method: 'PATCH', body: JSON.stringify({ ...draft, category: slugifyCategory(draft.category), ageBand: draft.ageBand || null, difficulty: draft.difficulty || null }) });
       setEditingId(null);
       setDraft(null);
       await loadArtworks();
@@ -147,7 +148,7 @@ export function AdminPage() {
   const saveCatalogPage = async (item: CatalogPage) => {
     if (!catalogDraft) return;
     try {
-      await api(`/admin/coloring-pages/${item.id}`, { method: 'PATCH', body: JSON.stringify(catalogDraft) });
+      await api(`/admin/coloring-pages/${item.id}`, { method: 'PATCH', body: JSON.stringify({ ...catalogDraft, category: slugifyCategory(catalogDraft.category) }) });
       setCatalogEditingId(null);
       setCatalogDraft(null);
       await loadCatalogPages();
@@ -157,7 +158,7 @@ export function AdminPage() {
     event.preventDefault();
     if (!newCatalogPage.title.trim() || (!newCatalogPage.lineArtUrl.trim() && !newCatalogPage.imageDataUrl)) return;
     try {
-      await api('/admin/coloring-pages', { method: 'POST', body: JSON.stringify({ ...newCatalogPage, title: newCatalogPage.title.trim(), lineArtUrl: newCatalogPage.lineArtUrl.trim() || undefined }) });
+      await api('/admin/coloring-pages', { method: 'POST', body: JSON.stringify({ ...newCatalogPage, title: newCatalogPage.title.trim(), category: slugifyCategory(newCatalogPage.category), lineArtUrl: newCatalogPage.lineArtUrl.trim() || undefined }) });
       setNewCatalogPage({ title: '', category: 'animals', lineArtUrl: '', imageDataUrl: '' });
       setNewCatalogFileName('');
       await loadCatalogPages();
@@ -198,7 +199,11 @@ export function AdminPage() {
   };
 
   const selectedSkill = skills.find((item) => item.slug === selectedSlug);
+  const categoryOptions = Array.from(
+    new Set([...BASE_CATEGORIES, ...catalogPages.map((page) => page.category), ...artworks.map((item) => item.category)].filter(Boolean)),
+  ).sort();
   return <div className="max-w-6xl mx-auto px-6 py-9 pb-28">
+    <datalist id="admin-categories">{categoryOptions.map((category) => <option key={category} value={category} />)}</datalist>
     <div className="flex flex-col md:flex-row justify-between md:items-end gap-4 border-b-4 border-black pb-6">
       <div><span className="font-display font-black text-[#705d00] flex gap-2"><ShieldCheck/>GÜVENLİ ATÖLYE</span><h1 className="font-display font-extrabold text-4xl mt-1">Yönetim masası</h1></div>
       <div className="flex flex-wrap gap-2">
@@ -218,7 +223,7 @@ export function AdminPage() {
         </div>
         <div className="grid md:grid-cols-[1fr_180px] gap-3">
           <label className="block text-sm font-black">Başlık<input value={newCatalogPage.title} onChange={(event) => setNewCatalogPage({ ...newCatalogPage, title: event.target.value })} placeholder="Örn. Uçan balon" className="mt-1 w-full border-2 border-black rounded-xl px-3 py-2 font-bold"/></label>
-          <label className="block text-sm font-black">Kategori<select value={newCatalogPage.category} onChange={(event) => setNewCatalogPage({ ...newCatalogPage, category: event.target.value as Category })} className="mt-1 w-full border-2 border-black rounded-xl px-3 py-2 font-bold bg-white">{CATEGORIES.map((category) => <option key={category} value={category}>{category}</option>)}</select></label>
+          <label className="block text-sm font-black">Kategori<input list="admin-categories" value={newCatalogPage.category} onChange={(event) => setNewCatalogPage({ ...newCatalogPage, category: event.target.value })} placeholder="animals, uzay, deniz-canlilari…" className="mt-1 w-full border-2 border-black rounded-xl px-3 py-2 font-bold bg-white"/><span className="mt-1 block text-[11px] font-bold text-black/45">Var olanı seç ya da yeni kategori yaz</span></label>
         </div>
         <div className="grid md:grid-cols-2 gap-3 mt-3">
           <label className="block text-sm font-black">Bilgisayardan görsel<input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => selectCatalogFile(event.target.files?.[0])} className="mt-1 w-full border-2 border-black rounded-xl px-3 py-2 font-bold bg-white"/></label>
@@ -234,7 +239,7 @@ export function AdminPage() {
         {!active && <><div className="flex justify-between gap-2 mt-4"><h2 className="font-display font-black text-xl">{item.title || item.nameTr}</h2></div><p className="text-sm font-bold text-black/50">{item.category}</p><div className="grid grid-cols-2 gap-2 mt-4"><button onClick={() => startCatalogEdit(item)} className="bg-[#fff2b2] border-2 border-black rounded-xl py-2 font-black flex items-center justify-center gap-2"><Pencil size={17}/>Düzenle</button><button onClick={() => removeCatalogPage(item)} className="bg-[#ffceca] border-2 border-black rounded-xl py-2 font-black flex items-center justify-center gap-2"><Trash2 size={17}/>Sil</button></div></>}
         {active && <div className="mt-4 space-y-3">
           <label className="block text-sm font-black">Başlık<input value={catalogDraft.title} onChange={(event) => setCatalogDraft({ ...catalogDraft, title: event.target.value })} className="mt-1 w-full border-2 border-black rounded-xl px-3 py-2 font-bold"/></label>
-          <label className="block text-sm font-black">Kategori<select value={catalogDraft.category} onChange={(event) => setCatalogDraft({ ...catalogDraft, category: event.target.value as Category })} className="mt-1 w-full border-2 border-black rounded-xl px-3 py-2 font-bold bg-white">{CATEGORIES.map((category) => <option key={category} value={category}>{category}</option>)}</select></label>
+          <label className="block text-sm font-black">Kategori<input list="admin-categories" value={catalogDraft.category} onChange={(event) => setCatalogDraft({ ...catalogDraft, category: event.target.value })} placeholder="animals, uzay…" className="mt-1 w-full border-2 border-black rounded-xl px-3 py-2 font-bold bg-white"/></label>
           <div className="grid grid-cols-2 gap-2"><button onClick={() => saveCatalogPage(item)} className="bg-[#dff3e4] border-2 border-black rounded-xl py-2 font-black flex items-center justify-center gap-2"><Save size={17}/>Kaydet</button><button onClick={() => { setCatalogEditingId(null); setCatalogDraft(null); }} className="bg-white border-2 border-black rounded-xl py-2 font-black">Vazgeç</button></div>
         </div>}
       </article>;
@@ -258,7 +263,7 @@ export function AdminPage() {
             <label className="block text-sm font-black">Başlık<input value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} className="mt-1 w-full border-2 border-black rounded-xl px-3 py-2 font-bold"/></label>
             <label className="block text-sm font-black">Konu<input value={draft.subject} onChange={(event) => setDraft({ ...draft, subject: event.target.value })} className="mt-1 w-full border-2 border-black rounded-xl px-3 py-2 font-bold"/></label>
             <div className="grid grid-cols-2 gap-2">
-              <label className="block text-sm font-black">Kategori<select value={draft.category} onChange={(event) => setDraft({ ...draft, category: event.target.value as Category })} className="mt-1 w-full border-2 border-black rounded-xl px-3 py-2 font-bold bg-white">{CATEGORIES.map((category) => <option key={category} value={category}>{category}</option>)}</select></label>
+              <label className="block text-sm font-black">Kategori<input list="admin-categories" value={draft.category} onChange={(event) => setDraft({ ...draft, category: event.target.value })} placeholder="animals, uzay…" className="mt-1 w-full border-2 border-black rounded-xl px-3 py-2 font-bold bg-white"/></label>
               <label className="block text-sm font-black">Durum<select value={draft.status} onChange={(event) => setDraft({ ...draft, status: event.target.value })} className="mt-1 w-full border-2 border-black rounded-xl px-3 py-2 font-bold bg-white">{STATUSES.filter((status) => status !== 'all').map((status) => <option key={status} value={status}>{STATUS_LABELS[status]}</option>)}</select></label>
               <label className="block text-sm font-black">Yaş<select value={draft.ageBand} onChange={(event) => setDraft({ ...draft, ageBand: event.target.value as AgeBand | '' })} className="mt-1 w-full border-2 border-black rounded-xl px-3 py-2 font-bold bg-white"><option value="">-</option>{(['3-5','6-8','9-12'] as const).map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
               <label className="block text-sm font-black">Zorluk<select value={draft.difficulty} onChange={(event) => setDraft({ ...draft, difficulty: event.target.value as Difficulty | '' })} className="mt-1 w-full border-2 border-black rounded-xl px-3 py-2 font-bold bg-white"><option value="">-</option>{(['easy','medium','detailed'] as const).map((value) => <option key={value} value={value}>{DIFFICULTY_LABELS[value]}</option>)}</select></label>

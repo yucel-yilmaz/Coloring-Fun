@@ -1,2 +1,3 @@
 export type AppTab = 'home' | 'gallery' | 'settings';
-export type AnimalCategory = 'all' | 'animals' | 'dinos' | 'vehicles' | 'people' | 'places' | 'space';
+// 'all' plus any category slug present in the catalog (data-driven; admin can add new ones).
+export type AnimalCategory = 'all' | (string & {});
