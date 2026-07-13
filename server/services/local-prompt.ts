@@ -1,4 +1,4 @@
-const SUBJECTS: Record<string, string> = {
+export const SUBJECTS: Record<string, string> = {
   'Sevimli aslan': 'single cute baby lion cub, one character only, one head only, one face only, no parent lion, no second animal',
   'Uzayda roket': 'a simple rocket flying in outer space',
   'Deniz kaplumbağası': 'a friendly sea turtle swimming underwater',

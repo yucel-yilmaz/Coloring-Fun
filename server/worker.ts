@@ -4,8 +4,9 @@ import { config } from './config';
 import { createProvider } from './providers';
 import { decryptSecret } from './security/crypto';
 import { processLineArt } from './services/image-processing';
-import { buildLocalImagePrompt } from './services/local-prompt';
+import { buildLocalImagePrompt, SUBJECTS } from './services/local-prompt';
 import { moderateImage, moderateText } from './services/moderation';
+import { translateToEnglish } from './services/translate';
 import { requireSupabase } from './supabase';
 
 const workerId = `${hostname()}-${process.pid}`;
@@ -37,13 +38,17 @@ async function processJob(job: any) {
     const { data: connection, error } = await supabase.from('ai_connections').select('*').eq('id', job.connection_id).eq('user_id', job.user_id).single();
     if (error || !connection) throw new Error('AI bağlantısı bulunamadı.');
     const provider = createProvider(connection.provider, decryptSecret(connection));
+    const useShortPrompt = SHORT_PROMPT_PROVIDERS.has(connection.provider);
+    const rawSubject = job.request.subjectPreset || '';
+    const shortPromptRequest = useShortPrompt
+      ? { ...job.request, subjectPreset: SUBJECTS[rawSubject] ? rawSubject : await translateToEnglish(rawSubject) }
+      : job.request;
     let quality: Awaited<ReturnType<typeof processLineArt>> | null = null;
     let source: Buffer | null = null;
     for (let attempt = 0; attempt < 2; attempt += 1) {
       await updateJob(job.id, { status: 'generating', progress: 25, attempt_count: attempt + 1 });
-      const useShortPrompt = SHORT_PROMPT_PROVIDERS.has(connection.provider);
       const providerPrompt = useShortPrompt
-        ? buildLocalImagePrompt(job.request)
+        ? buildLocalImagePrompt(shortPromptRequest)
         : job.compiled_prompt;
       const correction = useShortPrompt
         ? ' Use fewer lines. Keep exactly one character, one head, and one face only. Make every coloring area large, white, and fully enclosed by an unbroken outline. Remove extra/duplicate faces, parent-child compositions, solid black fills, texture, shading, mane micro-lines, and tiny details.'
