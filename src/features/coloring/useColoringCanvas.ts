@@ -19,16 +19,15 @@ interface UseColoringCanvasOptions {
 
 const MAX_CANVAS_DIMENSION = 1600;
 
-function restoreCanvas(canvas: HTMLCanvasElement, dataUrl: string) {
+/**
+ * Synchronous by design (unlike a toDataURL()+Image()+onload round-trip): undo/redo read and
+ * write the canvas back-to-back, and an async restore let rapid clicks read stale pixels,
+ * corrupting the history stacks and making undo silently skip a step.
+ */
+function restoreCanvas(canvas: HTMLCanvasElement, snapshot: ImageData) {
   const context = canvas.getContext('2d');
-  const image = new Image();
-  image.src = dataUrl;
-  image.onload = () => {
-    if (!context) return;
-    context.fillStyle = '#ffffff';
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.drawImage(image, 0, 0);
-  };
+  if (!context) return;
+  context.putImageData(snapshot, 0, 0);
 }
 
 export function useColoringCanvas({
@@ -38,8 +37,8 @@ export function useColoringCanvas({
   brushType,
   brushSize,
 }: UseColoringCanvasOptions) {
-  const [undoStack, setUndoStack] = useState<string[]>([]);
-  const [redoStack, setRedoStack] = useState<string[]>([]);
+  const [undoStack, setUndoStack] = useState<ImageData[]>([]);
+  const [redoStack, setRedoStack] = useState<ImageData[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const lineArtImgRef = useRef<HTMLImageElement>(null);
@@ -77,10 +76,17 @@ export function useColoringCanvas({
     image.onerror = () => console.error('Failed to load line art image for coordinates mapping');
   }, [animal]);
 
-  const saveToHistory = () => {
+  const captureSnapshot = () => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
-    setUndoStack((states) => [...states, canvas.toDataURL()]);
+    const context = canvas?.getContext('2d');
+    if (!canvas || !context) return null;
+    return context.getImageData(0, 0, canvas.width, canvas.height);
+  };
+
+  const saveToHistory = () => {
+    const snapshot = captureSnapshot();
+    if (!snapshot) return;
+    setUndoStack((states) => [...states, snapshot]);
     setRedoStack([]);
   };
 
@@ -180,21 +186,25 @@ export function useColoringCanvas({
   const undo = () => {
     const canvas = canvasRef.current;
     if (!canvas || undoStack.length === 0) return;
+    const currentSnapshot = captureSnapshot();
+    if (!currentSnapshot) return;
     playToolSelect();
     const previousStates = [...undoStack];
     const previousState = previousStates.pop();
     setUndoStack(previousStates);
-    setRedoStack((states) => [...states, canvas.toDataURL()]);
+    setRedoStack((states) => [...states, currentSnapshot]);
     if (previousState) restoreCanvas(canvas, previousState);
   };
 
   const redo = () => {
     const canvas = canvasRef.current;
     if (!canvas || redoStack.length === 0) return;
+    const currentSnapshot = captureSnapshot();
+    if (!currentSnapshot) return;
     playToolSelect();
     const nextStates = [...redoStack];
     const nextState = nextStates.pop();
-    setUndoStack((states) => [...states, canvas.toDataURL()]);
+    setUndoStack((states) => [...states, currentSnapshot]);
     setRedoStack(nextStates);
     if (nextState) restoreCanvas(canvas, nextState);
   };
