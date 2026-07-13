@@ -1,4 +1,4 @@
-import type { Animal, GalleryItem } from './types';
+import type { Animal } from './types';
 import { LOCAL_COLORING_PAGES } from './data/localColoringPages';
 
 const LOCAL_CARD_COLORS = [
@@ -75,45 +75,6 @@ export const ANIMALS: Animal[] = [
     category: page.category,
     hoverBorderColor: 'group-hover:bg-[#001e30]'
   }))
-];
-
-export const DEFAULT_GALLERY: GalleryItem[] = [
-  {
-    id: 'gal-1',
-    title: 'Roaring Lion',
-    animalId: 'lion',
-    date: 'Oct 24, 2023',
-    imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDMPGXaJdVTHs-6BlmV0nksp5wbVejRnrc5F2ueXgIkl0z3fopnDquMgiBwIP-4EP3R-vMtp7Hybz_utxgL9johYTzdqB92vWrgWQMLGGBI9C6WPp1gmlsQfUFZKNMeS6zrA7zssdpC2KkIsSCComnUJOWnI2t05j7EbZr3mE0AbSvNlY5WnhXwAHFDfkpUy_8XqzQuNCXlrZd2TXttjJDKJePLgDyTHN_PrmZZU104vBNF2wPcJQJC-XknRt-rdNlT8OGNHqiWdTcd',
-    isStarred: true
-  },
-  {
-    id: 'gal-2',
-    title: 'Happy Elephant',
-    animalId: 'elephant',
-    date: 'Oct 22, 2023',
-    imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCUOhYzIPFuNqMF1nRcsZWOeUnVdPpHG7QsevdLMiOodRcafKklibOHSRBp2qPPZFdE6stQu8MrQHiZymErNnhrKTL65e36ubIT53Eb6yUQdnigTShmcj9aRR9upcMXKdgZy1lr9t3mxKkH-xN1LDLalL4S3wtHy7guRWNfznJBQmonkTHRhbcslBKBjzRejuLI671_nZyXHu0cVecuC6L8AeJhBuJG1tT1xOTijUS-pG0R21-fwJpx_nDP8xmxk73wa2PnYLSWVtPN'
-  },
-  {
-    id: 'gal-3',
-    title: 'Swimming Turtle',
-    animalId: 'turtle',
-    date: 'Oct 20, 2023',
-    imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCwjDgh2ffP5L9xoenuQsF2Gk6lZ7K9BkbMYe1LJYmaCecQk601DJ5SF1qrByJXvuWks5P4wi-O_We91g3gosxZogx_yrfqlIsaYtU9olyItl6VlziAiKAB-BRWvcCxuHQpxSfibs65nokSlBy-4lq4Why1Mebqms1uwJuexjjgxUAFz6GsoEZPkuQTm7D2KuIR15-8UIo2a0WUriMkPURfHxdlsAq5KD36Mt9Q3DolXS3OHbz7QfI-hPc10yGdOwGQv6y3jdAL-okC'
-  },
-  {
-    id: 'gal-4',
-    title: 'Space Rocket',
-    animalId: 'rocket',
-    date: 'Oct 18, 2023',
-    imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAMU3hDUB0DJDkQRQEgNJ7Y9HiqBKO-I2FMygYS_2dMSrPXvxWmaR1BatqfUW-oB1el5X7TXeJZHiIrMBTP-TdY8IBDv5R3WRirIz-LdVyT3CARmFz4zsNQEwU6NUqHvKKud-LMM0vMfA4Kitr_N54RLxqr3nW_xTlO2toehdhyi6RrIAF_D6QC-DBHFBakR89fs5PljulzbI8a35DcbOAeSz3nKLUalgrPPmE8-3IzxUSR4yGj03kT8gbjSRfXFJpZjSH3JO37QmRl'
-  },
-  {
-    id: 'gal-5',
-    title: 'Green Dino',
-    animalId: 'dino',
-    date: 'Oct 15, 2023',
-    imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCzEH06AlFta2GYWMoGCun9BK88u6bXYdm1Y8Qn3BG3VP9GXadGqx5Hyy3sQDZw8NjX5Wwwenpp_q3DqLzFqWHBqPiOovt3Clf1jOVjv_qOuKOezgSAFFuW_QIs51DeobWSud57EpaC0cL5STbc2h9l2YoGC8uo8RhpEx9cC3K7S_f9ccVLCk0QTOdiEqc_zNRaQq_59JzBN-0HYf5J4vc7lU9QephV4Wbj2yIN1SyMh2YVd8g2dJ-7UqJ5UtTmc0JlSXQO2kkJNLSn'
-  }
 ];
 
 export const COLORS = [

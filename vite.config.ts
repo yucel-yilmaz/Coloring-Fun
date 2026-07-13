@@ -14,6 +14,19 @@ export default defineConfig(({mode}) => {
         '@': path.resolve(__dirname, '.'),
       },
     },
+    build: {
+      rollupOptions: {
+        output: {
+          // Split rarely-changing vendor code out of the main app chunk for better caching
+          // and a smaller initial payload.
+          manualChunks: {
+            'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+            'i18n-vendor': ['i18next', 'react-i18next'],
+            'icons-vendor': ['lucide-react'],
+          },
+        },
+      },
+    },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // File watching can be disabled to prevent flickering in managed editors.

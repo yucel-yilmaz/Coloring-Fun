@@ -156,13 +156,13 @@ export function ToolSidebar({
         <ArrowLeft size={28} className="stroke-[3px]" />
       </button>
 
-      <button onClick={() => selectTool('brush')} className={toolClass('brush')} id="tool-brush" title={t('board.brush')}>
+      <button onClick={() => selectTool('brush')} aria-pressed={activeTool === 'brush'} aria-label={t('board.brush')} className={toolClass('brush')} id="tool-brush" title={t('board.brush')}>
         <Paintbrush size={24} className="md:size-8 text-black stroke-[2.5px]" />
       </button>
-      <button onClick={() => selectTool('bucket')} className={toolClass('bucket')} id="tool-bucket" title={t('board.bucket')}>
+      <button onClick={() => selectTool('bucket')} aria-pressed={activeTool === 'bucket'} aria-label={t('board.bucket')} className={toolClass('bucket')} id="tool-bucket" title={t('board.bucket')}>
         <PaintBucket size={24} className="md:size-8 text-black stroke-[2.5px]" />
       </button>
-      <button onClick={() => selectTool('eraser')} className={toolClass('eraser')} id="tool-eraser" title={t('board.eraser')}>
+      <button onClick={() => selectTool('eraser')} aria-pressed={activeTool === 'eraser'} aria-label={t('board.eraser')} className={toolClass('eraser')} id="tool-eraser" title={t('board.eraser')}>
         <Eraser size={24} className="md:size-8 text-black stroke-[2.5px]" />
       </button>
 
