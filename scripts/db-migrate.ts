@@ -48,8 +48,10 @@ export function pendingMigrations(all: string[], applied: Set<string>): string[]
 async function run(): Promise<void> {
   const connectionString = process.env.SUPABASE_DB_URL;
   if (!connectionString) {
-    console.error('SUPABASE_DB_URL is not set. Provide the Supabase direct Postgres connection string to run migrations.');
-    process.exit(1);
+    // Not an error: this lets the runner sit harmlessly in the deploy pipeline until a
+    // connection string is configured. Provide SUPABASE_DB_URL to actually run migrations.
+    console.log('SUPABASE_DB_URL is not set — skipping migrations.');
+    return;
   }
 
   const isLocal = /@(localhost|127\.0\.0\.1)[:/]/.test(connectionString);
@@ -98,8 +100,9 @@ async function run(): Promise<void> {
   }
 }
 
-// Only run when invoked directly (so tests can import the helpers without connecting).
-if (process.argv[1] && path.resolve(process.argv[1]).includes('db-migrate')) {
+// Run only when invoked directly as the entrypoint (dev: scripts/db-migrate.ts, prod bundle:
+// dist/migrate.cjs) — not when the helpers are imported by tests, whose argv[1] is the test runner.
+if (process.argv[1] && /(?:db-)?migrate(?:\.[cm]?[jt]s)?$/.test(path.resolve(process.argv[1]))) {
   run().catch((error) => {
     console.error(error);
     process.exit(1);

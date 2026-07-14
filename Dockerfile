@@ -30,6 +30,8 @@ ENV LOCAL_AI_ENABLED=false
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 COPY --from=builder /app/dist ./dist
+# SQL migration files, read at deploy time by the `migrate` service (npm run start:migrate).
+COPY --from=builder /app/supabase/migrations ./supabase/migrations
 USER node
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 CMD node -e "fetch('http://127.0.0.1:' + (process.env.PORT || 3000) + '/api/health').then((res) => process.exit(res.ok ? 0 : 1)).catch(() => process.exit(1))"

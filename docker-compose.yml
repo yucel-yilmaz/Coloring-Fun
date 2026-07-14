@@ -6,6 +6,9 @@ x-app-env: &app-env
   SUPABASE_URL: ${SUPABASE_URL:?Set SUPABASE_URL}
   SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL:-${SUPABASE_URL}}
   SUPABASE_SECRET_KEY: ${SUPABASE_SECRET_KEY:?Set SUPABASE_SECRET_KEY}
+  # Optional: direct Postgres connection string. When set, the one-shot `migrate` service applies
+  # pending SQL migrations on each deploy. Leave empty to skip (migrations then stay manual).
+  SUPABASE_DB_URL: ${SUPABASE_DB_URL:-}
   AI_KEYS_MASTER_KEY: ${AI_KEYS_MASTER_KEY:?Set AI_KEYS_MASTER_KEY}
   GEMINI_MODERATION_API_KEY: ${GEMINI_MODERATION_API_KEY:-}
   ALLOW_DEGRADED_MODERATION: ${ALLOW_DEGRADED_MODERATION:-false}
@@ -21,6 +24,18 @@ x-app-env: &app-env
   WORKER_POLL_MS: ${WORKER_POLL_MS:-2000}
 
 services:
+  # One-shot migration runner. Runs on every deploy and exits; it does NOT block web/worker
+  # (they don't depend on it), so a migration hiccup can't take the app down. No-ops unless
+  # SUPABASE_DB_URL is set. Applied migrations are tracked in a schema_migrations table.
+  migrate:
+    image: coloring-fun-app:latest
+    restart: "no"
+    command: ["npm", "run", "start:migrate"]
+    environment:
+      <<: *app-env
+    healthcheck:
+      disable: true
+
   web:
     build:
       context: .

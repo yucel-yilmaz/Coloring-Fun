@@ -120,6 +120,12 @@ migration'ları uygularken gereklidir. Yeni migration dosyalarını idempotent y
 (ör. `create ... if not exists`, `drop ... if exists`) ki hem taze hem de
 benimsenmiş veritabanlarında çalışsınlar.
 
+Docker Compose'da `SUPABASE_DB_URL` ayarlıysa, bir kerelik `migrate` servisi her
+deploy'da bekleyen migration'ları otomatik uygular. Bu servis `web`/`worker`'ı
+**bloklamaz** (onlara bağımlı değildir), böylece bir migration takılması uygulamayı
+düşürmez. Self-hosted Supabase'de dizeyi iç DB'ye yöneltin (ör.
+`postgresql://postgres:PASS@supabase-db:5432/postgres`).
+
 Yerel Supabase için Docker çalışırken:
 
 ```bash
