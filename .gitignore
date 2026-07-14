@@ -1,0 +1,15 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+__pycache__/
+*.py[cod]
+.env*
+!.env.example
+!.env.coolify.example
+supabase/.temp/
+supabase/.branches/
+/public/robots.txt
+/public/sitemap.xml
