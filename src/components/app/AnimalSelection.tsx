@@ -61,7 +61,9 @@ export function AnimalSelection({
             ref={scrollerRef}
             role="tablist"
             aria-label={t('animalSelection.categoriesLabel')}
-            className="flex gap-3 overflow-x-auto pb-1 scrollbar-none"
+            // overflow-x-auto forces overflow-y to auto, which would clip the chips' hover lift and
+            // their hard offset shadows — so pad on every side to give both room to render.
+            className="flex gap-3 overflow-x-auto scrollbar-none px-1.5 pt-1.5 pb-2.5"
           >
             {categories.map((category) => {
               const isActive = activeCategory === category.id;
